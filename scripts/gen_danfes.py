@@ -5,10 +5,13 @@ coerente), então nada precisa ser anonimizado antes de subir para a nuvem.
 
 Variações para o extrator não ter vida fácil:
   - layout "padrao" (próximo do DANFE oficial) e "compacto" (rótulos diferentes)
+  - só no conjunto de teste: layout "variante", com rótulos de outros emissores
+    ("DATA DE EMISSÃO", "VALOR TOTAL DA NF-e", "C.N.P.J.") e outra fonte
   - parte das notas vira imagem com rotação, ruído e JPEG ("escaneada")
   - destinatário com CNPJ ou CPF, data de saída diferente da emissão
 
-Uso: python scripts/gen_danfes.py --n 40
+Uso: python scripts/gen_danfes.py --n 40                    # desenvolvimento
+     python scripts/gen_danfes.py --n 40 --conjunto teste    # teste separado
 """
 import argparse
 import csv
@@ -112,8 +115,9 @@ def desenha(c, n, layout):
     lbl = {
         "padrao": dict(emissao="DATA DA EMISSÃO", total="VALOR TOTAL DA NOTA", cnpj="CNPJ"),
         "compacto": dict(emissao="DT. EMISSÃO", total="V. TOTAL NF-e", cnpj="CNPJ EMITENTE"),
+        "variante": dict(emissao="DATA DE EMISSÃO", total="VALOR TOTAL DA NF-e", cnpj="C.N.P.J."),
     }[layout]
-    font = "Helvetica" if layout == "padrao" else "Courier"
+    font = {"padrao": "Helvetica", "compacto": "Courier", "variante": "Times-Roman"}[layout]
 
     # canhoto
     y -= 34
@@ -174,7 +178,7 @@ def desenha(c, n, layout):
     y -= 20
     campo(c, M, y, 180, 20, "INSCRIÇÃO ESTADUAL", n["ie"], font=font)
     campo(c, M + 180, y, 180, 20, "INSC. ESTADUAL DO SUBST. TRIB.", font=font)
-    if layout == "padrao":
+    if layout != "compacto":
         campo(c, M + 360, y, W - 2 * M - 360, 20, lbl["cnpj"], fmt_cnpj(n["cnpj"]), font=font)
     else:
         campo(c, M + 360, y, W - 2 * M - 360, 20, "INSCRIÇÃO MUNICIPAL", n["im"], font=font)
@@ -311,16 +315,23 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--n", type=int, default=40)
     ap.add_argument("--escaneadas", type=float, default=0.35, help="fração de notas escaneadas")
-    ap.add_argument("--seed", type=int, default=2026)
+    ap.add_argument("--seed", type=int, help="padrão: 2026 (dev) ou 7 (teste)")
+    ap.add_argument("--conjunto", choices=["dev", "teste"], default="dev")
     args = ap.parse_args()
 
-    rng = random.Random(args.seed)
-    pdf_dir = config.INVOICES_DIR / "pdf"
+    teste = args.conjunto == "teste"
+    rng = random.Random(args.seed if args.seed is not None else (7 if teste else 2026))
+    base = config.INVOICES_TEST_DIR if teste else config.INVOICES_DIR
+    gabarito = config.GABARITO_NOTAS_TESTE if teste else config.GABARITO_NOTAS
+    pdf_dir = base / "pdf"
     pdf_dir.mkdir(parents=True, exist_ok=True)
     linhas = []
     for i in range(1, args.n + 1):
         n = gera_nota(i, rng)
-        layout = "padrao" if rng.random() < 0.65 else "compacto"
+        if teste:
+            layout = rng.choice(["padrao", "compacto", "variante"])
+        else:
+            layout = "padrao" if rng.random() < 0.65 else "compacto"
         escaneada = rng.random() < args.escaneadas
         buf = io.BytesIO()
         c = canvas.Canvas(buf, pagesize=A4)
@@ -334,12 +345,12 @@ def main():
                            data_emissao=n["emissao"].isoformat(), valor_total=f"{n['total']:.2f}",
                            layout=layout, escaneada=int(escaneada)))
 
-    with open(config.GABARITO_NOTAS, "w", newline="", encoding="utf-8") as f:
+    with open(gabarito, "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=list(linhas[0]))
         w.writeheader()
         w.writerows(linhas)
     esc = sum(r["escaneada"] for r in linhas)
-    print(f"{len(linhas)} notas em {pdf_dir} ({esc} escaneadas); gabarito em {config.GABARITO_NOTAS}")
+    print(f"{len(linhas)} notas em {pdf_dir} ({esc} escaneadas); gabarito em {gabarito}")
 
 
 if __name__ == "__main__":

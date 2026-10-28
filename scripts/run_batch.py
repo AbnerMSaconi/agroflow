@@ -1,9 +1,10 @@
 """Processa um lote inteiro direto (sem passar pelo bucket) e grava na tabela.
 
 Uso:
-  python scripts/run_batch.py notas    # data/invoices/pdf/*.pdf
+  python scripts/run_batch.py notas    # data/invoices/pdf/*.pdf e data/invoices/teste/pdf/*.pdf
   python scripts/run_batch.py folhas   # data/leaves/test/<classe>/*
-O nome gravado das folhas é "<classe>/<arquivo>" para a avaliação achar o gabarito.
+O nome gravado das folhas é "<classe>/<arquivo>" e o das notas de teste é
+"teste/<arquivo>", para a avaliação achar o gabarito certo.
 """
 import argparse
 import sys
@@ -22,11 +23,12 @@ def main():
 
     if args.lote == "notas":
         storage.clear("nota")
-        arquivos = sorted((config.INVOICES_DIR / "pdf").glob("*.pdf"))
-        for p in arquivos:
-            rows = process_invoice(p)
+        arquivos = [(p, p.name) for p in sorted((config.INVOICES_DIR / "pdf").glob("*.pdf"))]
+        arquivos += [(p, f"teste/{p.name}") for p in sorted((config.INVOICES_TEST_DIR / "pdf").glob("*.pdf"))]
+        for p, nome in arquivos:
+            rows = process_invoice(p, nome=nome)
             storage.save(rows)
-            print(p.name, {r.campo: r.valor for r in rows})
+            print(nome, {r.campo: r.valor for r in rows})
     else:
         storage.clear("folha_classificador")
         if not args.sem_baseline:

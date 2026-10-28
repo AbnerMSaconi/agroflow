@@ -55,7 +55,7 @@ def salvar(fig, nome):
 
 def latex_tabela(df: pd.DataFrame, nome, legenda, rotulo):
     TAB.mkdir(parents=True, exist_ok=True)
-    corpo = df.to_latex(index=False, escape=True, float_format="%.3f")
+    corpo = df.to_latex(index=False, escape=True, float_format="%.3f", na_rep="--")
     (TAB / f"{nome}.tex").write_text(
         "\\begin{table}[ht]\n\\centering\n\\small\n" + corpo
         + f"\\caption{{{legenda}}}\n\\label{{{rotulo}}}\n\\end{{table}}\n", encoding="utf-8")
@@ -99,24 +99,27 @@ def grafico_limiar(df, escolhido, titulo, nome):
     salvar(fig, nome)
 
 
-def avalia_notas(df):
-    gab = pd.read_csv(config.GABARITO_NOTAS, dtype=str)
+def avalia_notas(df, gabarito, prefixo="", sufixo="", titulo="Notas fiscais"):
+    """prefixo: como o arquivo foi gravado na tabela ("teste/"); sufixo: nome das saídas."""
+    if not gabarito.exists():
+        return None
+    gab = pd.read_csv(gabarito, dtype=str)
     notas = df[df.tipo == "nota"]
     fonte = notas[notas.campo == "_fonte"].set_index("arquivo").valor
     pred = notas[notas.campo.isin(CAMPOS)]
     linhas = []
     for _, g in gab.iterrows():
         for c in CAMPOS:
-            p = pred[(pred.arquivo == g.arquivo) & (pred.campo == c)]
+            p = pred[(pred.arquivo == prefixo + g.arquivo) & (pred.campo == c)]
             valor = p.valor.iloc[0] if len(p) else None
             linhas.append(dict(arquivo=g.arquivo, campo=c, esperado=g[c], extraido=valor,
                                confidence=float(p.confidence.iloc[0]) if len(p) else 0.0,
                                certo=valor == g[c], escaneada=g.escaneada == "1", layout=g.layout,
-                               fonte=fonte.get(g.arquivo)))
+                               fonte=fonte.get(prefixo + g.arquivo)))
     d = pd.DataFrame(linhas)
     if d.extraido.isna().all():
         return None
-    d.to_csv(config.RESULTS / "notas_comparacao.csv", index=False)
+    d.to_csv(config.RESULTS / f"notas_comparacao{sufixo}.csv", index=False)
 
     por_campo = d.groupby("campo").agg(acerto=("certo", "mean"),
                                        conf_media=("confidence", "mean")).reindex(CAMPOS)
@@ -130,25 +133,25 @@ def avalia_notas(df):
 
     tab = por_campo.reset_index()
     tab.columns = ["Campo", "Acerto", "Conf. média", "Conf. (certos)", "Conf. (errados)"]
-    latex_tabela(tab, "notas_por_campo", "Extração de notas: acerto medido vs. confidence por campo.",
-                 "tab:notas-campo")
+    latex_tabela(tab, f"notas_por_campo{sufixo}",
+                 f"{titulo}: acerto medido vs. confidence por campo.", f"tab:notas-campo{sufixo.replace('_', '-')}")
 
     fig, ax = plt.subplots(figsize=(5.2, 3.0))
     x = np.arange(len(CAMPOS))
     ax.bar(x - 0.2, por_campo.acerto, 0.4, label="acerto medido")
     ax.bar(x + 0.2, por_campo.conf_media, 0.4, label="confidence médio")
     ax.set_xticks(x, CAMPOS)
-    ax.set(ylim=(0, 1.05), title="Notas fiscais: acerto vs. confidence por campo")
+    ax.set(ylim=(0, 1.05), title=f"{titulo}: acerto vs. confidence")
     ax.legend(fontsize=7)
-    salvar(fig, "notas_acerto_vs_confidence.png")
+    salvar(fig, f"notas_acerto_vs_confidence{sufixo}.png")
 
     fig, ax = plt.subplots(figsize=(5.2, 3.0))
     ax.hist([d[d.certo].confidence, d[~d.certo].confidence], bins=np.linspace(0, 1, 21),
             label=["campos certos", "campos errados"], stacked=True)
-    ax.set(xlabel="confidence", ylabel="campos", title="Distribuição do confidence (notas)")
+    ax.set(xlabel="confidence", ylabel="campos", title=f"Distribuição do confidence ({titulo.lower()})")
     ax.legend(fontsize=7)
-    salvar(fig, "notas_hist_confidence.png")
-    grafico_limiar(limiar_df, limiar, "Notas: efeito do limiar", "notas_limiar.png")
+    salvar(fig, f"notas_hist_confidence{sufixo}.png")
+    grafico_limiar(limiar_df, limiar, f"{titulo}: efeito do limiar", f"notas_limiar{sufixo}.png")
 
     erros = d[~d.certo][["arquivo", "campo", "esperado", "extraido", "confidence", "fonte"]]
     return dict(
@@ -271,16 +274,25 @@ def custos(df, vol_notas, vol_imgs):
 
 def resumo_md(m):
     L = ["# Resultados (gerado por scripts/evaluate.py)", "", f"Backend: `{config.BACKEND}`", ""]
-    if n := m.get("notas"):
-        L += ["## Notas fiscais", "",
+    for chave, titulo in [("notas", "Notas fiscais — desenvolvimento"),
+                          ("notas_teste", "Notas fiscais — teste separado")]:
+        if not (n := m.get(chave)):
+            continue
+        L += [f"## {titulo}", "",
               f"- {n['n_notas']} notas; acerto por campo **{n['acerto_campos']:.1%}**, "
               f"nota inteira certa **{n['acerto_nota_inteira']:.1%}**",
               f"- digital vs. escaneada: {n['por_tipo']}",
+              f"- por layout: {n['por_layout']}",
               f"- confidence médio: certos {n['conf_media_certos']:.3f} / errados {n['conf_media_errados']}",
               f"- ECE {n['ece']:.3f}; limiar sugerido {n['limiar_escolhido']}", "",
               "| campo | acerto | conf. média | conf. certos | conf. errados |", "|---|---|---|---|---|"]
         for c, v in n["por_campo"].items():
             L.append(f"| {c} | {v['acerto']:.3f} | {v['conf_media']:.3f} | {v['conf_certos']} | {v['conf_errados']} |")
+        if n["erros"]:
+            L += ["", f"Erros ({len(n['erros'])}):", "",
+                  "| arquivo | campo | esperado | extraído | conf. | fonte |", "|---|---|---|---|---|---|"]
+            L += [f"| {e['arquivo']} | {e['campo']} | {e['esperado']} | {e['extraido']} | {e['confidence']} | {e['fonte']} |"
+                  for e in n["erros"]]
         L.append("")
     if b := m.get("baseline"):
         L += ["## Linha de base (rótulos genéricos)", "",
@@ -312,7 +324,10 @@ def main():
     df = df.drop_duplicates(["arquivo", "tipo", "campo"], keep="last")
     # folhas sem "<classe>/" no nome vieram da demo pelo bucket e não têm gabarito
     df = df[(df.tipo == "nota") | df.arquivo.str.contains("/")]
-    m = dict(backend=config.BACKEND, notas=avalia_notas(df), baseline=avalia_baseline(df),
+    m = dict(backend=config.BACKEND,
+             notas=avalia_notas(df, config.GABARITO_NOTAS, titulo="Notas (desenv.)"),
+             notas_teste=avalia_notas(df, config.GABARITO_NOTAS_TESTE, "teste/", "_teste", "Notas (teste)"),
+             baseline=avalia_baseline(df),
              classificador=avalia_classificador(df),
              custos=custos(df, args.volume_notas, args.volume_imagens))
     (config.RESULTS / "metricas.json").write_text(json.dumps(m, indent=2, ensure_ascii=False, default=str),

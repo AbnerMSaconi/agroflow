@@ -13,6 +13,9 @@ BACKEND = os.getenv("AGROFLOW_BACKEND", "local")
 DATA = ROOT / "data"
 INVOICES_DIR = DATA / "invoices"
 GABARITO_NOTAS = INVOICES_DIR / "gabarito.csv"
+# conjunto de teste: outro seed e um layout que o extrator nunca viu
+INVOICES_TEST_DIR = INVOICES_DIR / "teste"
+GABARITO_NOTAS_TESTE = INVOICES_TEST_DIR / "gabarito.csv"
 LEAVES_DIR = DATA / "leaves"
 
 BUCKET = ROOT / "bucket"  # espelho local do bucket de entrada

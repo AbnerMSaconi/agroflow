@@ -20,6 +20,9 @@ só serve se a disciplina exigir os serviços de verdade ou para a comparação
 - 🟡 Processador Invoice Parser → criar no console; extrator pronto em `agroflow/invoices/docai_extractor.py`
 - ✅ Script de extração (campo, valor, confidence) — local: `local_extractor.py`
 - ✅ Rodado nas 40 notas e comparado campo a campo (`results/notas_comparacao.csv`)
+- ✅ Conjunto de teste separado (`data/invoices/teste`, seed 7 + layout "variante" nunca visto):
+  91,9% por campo, 67,5% nota inteira; os 13 erros são o valor total do layout novo, todos
+  devolvidos vazios (confidence 0), nenhum valor errado com confidence alto
 - ⬜ Prints de onde o parser genérico erra na DANFE (precisa do Document AI)
 - ⬜ Custom Extractor, se o Invoice Parser for mal
 
@@ -52,6 +55,7 @@ só serve se a disciplina exigir os serviços de verdade ou para a comparação
 - ⬜ Slides, vídeo de reserva, ensaios
 
 ## Pontos de atenção
-- O extrator local acerta 100% das notas, mas as regras foram ajustadas vendo esses layouts.
-  Vale gerar um conjunto separado (outro seed/layout) só para teste antes de citar o número.
+- O extrator local acerta 100% das notas de desenvolvimento, mas as regras foram ajustadas vendo
+  esses layouts. Cite o número do conjunto de teste (91,9% por campo) e não ajuste o extrator
+  olhando o teste.
 - O confidence do CNPJ é quase constante (0,85): informativo só quando o dígito verificador falha.

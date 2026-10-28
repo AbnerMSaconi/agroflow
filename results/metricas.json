@@ -206,6 +206,318 @@
     ],
     "erros": []
   },
+  "notas_teste": {
+    "n_notas": 40,
+    "acerto_campos": 0.91875,
+    "acerto_nota_inteira": 0.675,
+    "por_campo": {
+      "cnpj_emitente": {
+        "acerto": 1.0,
+        "conf_media": 0.85,
+        "conf_certos": 0.85,
+        "conf_errados": NaN
+      },
+      "numero": {
+        "acerto": 1.0,
+        "conf_media": 0.94,
+        "conf_certos": 0.94,
+        "conf_errados": NaN
+      },
+      "data_emissao": {
+        "acerto": 1.0,
+        "conf_media": 0.947,
+        "conf_certos": 0.947,
+        "conf_errados": NaN
+      },
+      "valor_total": {
+        "acerto": 0.675,
+        "conf_media": 0.602,
+        "conf_certos": 0.892,
+        "conf_errados": 0.0
+      }
+    },
+    "por_tipo": {
+      "digital": 0.927,
+      "escaneada": 0.906
+    },
+    "por_layout": {
+      "compacto": 1.0,
+      "padrao": 1.0,
+      "variante": 0.75
+    },
+    "conf_media_certos": 0.9083333333333332,
+    "conf_media_errados": 0.0,
+    "ece": 0.08421875000000001,
+    "limiar_escolhido": 0.05,
+    "limiar_tabela": [
+      {
+        "limiar": 0.0,
+        "aceitos": 1.0,
+        "precisao_aceitos": 0.919,
+        "erros_barrados": 0,
+        "erros_passaram": 13,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.05,
+        "aceitos": 0.919,
+        "precisao_aceitos": 1.0,
+        "erros_barrados": 13,
+        "erros_passaram": 0,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.1,
+        "aceitos": 0.919,
+        "precisao_aceitos": 1.0,
+        "erros_barrados": 13,
+        "erros_passaram": 0,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.15,
+        "aceitos": 0.919,
+        "precisao_aceitos": 1.0,
+        "erros_barrados": 13,
+        "erros_passaram": 0,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.2,
+        "aceitos": 0.919,
+        "precisao_aceitos": 1.0,
+        "erros_barrados": 13,
+        "erros_passaram": 0,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.25,
+        "aceitos": 0.919,
+        "precisao_aceitos": 1.0,
+        "erros_barrados": 13,
+        "erros_passaram": 0,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.3,
+        "aceitos": 0.919,
+        "precisao_aceitos": 1.0,
+        "erros_barrados": 13,
+        "erros_passaram": 0,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.35,
+        "aceitos": 0.919,
+        "precisao_aceitos": 1.0,
+        "erros_barrados": 13,
+        "erros_passaram": 0,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.4,
+        "aceitos": 0.919,
+        "precisao_aceitos": 1.0,
+        "erros_barrados": 13,
+        "erros_passaram": 0,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.45,
+        "aceitos": 0.919,
+        "precisao_aceitos": 1.0,
+        "erros_barrados": 13,
+        "erros_passaram": 0,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.5,
+        "aceitos": 0.919,
+        "precisao_aceitos": 1.0,
+        "erros_barrados": 13,
+        "erros_passaram": 0,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.55,
+        "aceitos": 0.919,
+        "precisao_aceitos": 1.0,
+        "erros_barrados": 13,
+        "erros_passaram": 0,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.6,
+        "aceitos": 0.919,
+        "precisao_aceitos": 1.0,
+        "erros_barrados": 13,
+        "erros_passaram": 0,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.65,
+        "aceitos": 0.919,
+        "precisao_aceitos": 1.0,
+        "erros_barrados": 13,
+        "erros_passaram": 0,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.7,
+        "aceitos": 0.919,
+        "precisao_aceitos": 1.0,
+        "erros_barrados": 13,
+        "erros_passaram": 0,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.75,
+        "aceitos": 0.919,
+        "precisao_aceitos": 1.0,
+        "erros_barrados": 13,
+        "erros_passaram": 0,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.8,
+        "aceitos": 0.912,
+        "precisao_aceitos": 1.0,
+        "erros_barrados": 13,
+        "erros_passaram": 0,
+        "acertos_barrados": 1
+      },
+      {
+        "limiar": 0.85,
+        "aceitos": 0.9,
+        "precisao_aceitos": 1.0,
+        "erros_barrados": 13,
+        "erros_passaram": 0,
+        "acertos_barrados": 3
+      },
+      {
+        "limiar": 0.9,
+        "aceitos": 0.594,
+        "precisao_aceitos": 1.0,
+        "erros_barrados": 13,
+        "erros_passaram": 0,
+        "acertos_barrados": 52
+      },
+      {
+        "limiar": 0.95,
+        "aceitos": 0.3,
+        "precisao_aceitos": 1.0,
+        "erros_barrados": 13,
+        "erros_passaram": 0,
+        "acertos_barrados": 99
+      }
+    ],
+    "erros": [
+      {
+        "arquivo": "nota_001.pdf",
+        "campo": "valor_total",
+        "esperado": "2896.66",
+        "extraido": NaN,
+        "confidence": 0.0,
+        "fonte": "texto"
+      },
+      {
+        "arquivo": "nota_004.pdf",
+        "campo": "valor_total",
+        "esperado": "102439.15",
+        "extraido": NaN,
+        "confidence": 0.0,
+        "fonte": "texto"
+      },
+      {
+        "arquivo": "nota_005.pdf",
+        "campo": "valor_total",
+        "esperado": "11387.59",
+        "extraido": NaN,
+        "confidence": 0.0,
+        "fonte": "ocr"
+      },
+      {
+        "arquivo": "nota_010.pdf",
+        "campo": "valor_total",
+        "esperado": "32312.89",
+        "extraido": NaN,
+        "confidence": 0.0,
+        "fonte": "ocr"
+      },
+      {
+        "arquivo": "nota_015.pdf",
+        "campo": "valor_total",
+        "esperado": "2588.29",
+        "extraido": NaN,
+        "confidence": 0.0,
+        "fonte": "texto"
+      },
+      {
+        "arquivo": "nota_016.pdf",
+        "campo": "valor_total",
+        "esperado": "7530.51",
+        "extraido": NaN,
+        "confidence": 0.0,
+        "fonte": "texto"
+      },
+      {
+        "arquivo": "nota_017.pdf",
+        "campo": "valor_total",
+        "esperado": "24048.93",
+        "extraido": NaN,
+        "confidence": 0.0,
+        "fonte": "ocr"
+      },
+      {
+        "arquivo": "nota_022.pdf",
+        "campo": "valor_total",
+        "esperado": "484.98",
+        "extraido": NaN,
+        "confidence": 0.0,
+        "fonte": "texto"
+      },
+      {
+        "arquivo": "nota_026.pdf",
+        "campo": "valor_total",
+        "esperado": "62266.23",
+        "extraido": NaN,
+        "confidence": 0.0,
+        "fonte": "ocr"
+      },
+      {
+        "arquivo": "nota_032.pdf",
+        "campo": "valor_total",
+        "esperado": "16119.52",
+        "extraido": NaN,
+        "confidence": 0.0,
+        "fonte": "texto"
+      },
+      {
+        "arquivo": "nota_035.pdf",
+        "campo": "valor_total",
+        "esperado": "51958.20",
+        "extraido": NaN,
+        "confidence": 0.0,
+        "fonte": "texto"
+      },
+      {
+        "arquivo": "nota_036.pdf",
+        "campo": "valor_total",
+        "esperado": "69271.47",
+        "extraido": NaN,
+        "confidence": 0.0,
+        "fonte": "ocr"
+      },
+      {
+        "arquivo": "nota_038.pdf",
+        "campo": "valor_total",
+        "esperado": "10317.00",
+        "extraido": NaN,
+        "confidence": 0.0,
+        "fonte": "ocr"
+      }
+    ]
+  },
   "baseline": {
     "n_imagens": 100,
     "frac_identifica_praga": 0.0,
@@ -457,9 +769,9 @@
   },
   "custos": {
     "tempo_medio_ms_por_item": {
-      "folha_baseline": 70.4,
-      "folha_classificador": 7.2,
-      "nota": 1258.7
+      "folha_baseline": 214.6,
+      "folha_classificador": 9.8,
+      "nota": 1253.5
     },
     "precos_referencia": {
       "docai_invoice_por_pagina": 0.01,

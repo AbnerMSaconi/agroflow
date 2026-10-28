@@ -36,10 +36,11 @@ python -m venv .venv
 
 # dados (já versionados; só rode para regenerar)
 python scripts/gen_danfes.py --n 40          # DANFEs fictícias + data/invoices/gabarito.csv
+python scripts/gen_danfes.py --n 40 --conjunto teste   # teste separado: outro seed + layout novo
 python scripts/prepare_leaves.py             # precisa do PlantVillage em _downloads/ (ver docstring)
 
 python scripts/train_leaf_classifier.py      # ~15 s na GPU -> models/leaf_classifier.pt
-python scripts/run_batch.py notas            # extrai as 40 notas
+python scripts/run_batch.py notas            # extrai as notas de desenvolvimento e de teste
 python scripts/run_batch.py folhas           # linha de base + classificador no teste fixo
 python scripts/evaluate.py                   # métricas, gráficos e tabelas LaTeX
 ```
