@@ -1,0 +1,480 @@
+{
+  "backend": "local",
+  "notas": {
+    "n_notas": 40,
+    "acerto_campos": 1.0,
+    "acerto_nota_inteira": 1.0,
+    "por_campo": {
+      "cnpj_emitente": {
+        "acerto": 1.0,
+        "conf_media": 0.85,
+        "conf_certos": 0.85,
+        "conf_errados": null
+      },
+      "numero": {
+        "acerto": 1.0,
+        "conf_media": 0.933,
+        "conf_certos": 0.933,
+        "conf_errados": null
+      },
+      "data_emissao": {
+        "acerto": 1.0,
+        "conf_media": 0.942,
+        "conf_certos": 0.942,
+        "conf_errados": null
+      },
+      "valor_total": {
+        "acerto": 1.0,
+        "conf_media": 0.891,
+        "conf_certos": 0.891,
+        "conf_errados": null
+      }
+    },
+    "por_tipo": {
+      "digital": 1.0,
+      "escaneada": 1.0
+    },
+    "por_layout": {
+      "compacto": 1.0,
+      "padrao": 1.0
+    },
+    "conf_media_certos": 0.9038999999999999,
+    "conf_media_errados": null,
+    "ece": 0.09609999999999998,
+    "limiar_escolhido": 0.0,
+    "limiar_tabela": [
+      {
+        "limiar": 0.0,
+        "aceitos": 1.0,
+        "precisao_aceitos": 1.0,
+        "erros_barrados": 0,
+        "erros_passaram": 0,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.05,
+        "aceitos": 1.0,
+        "precisao_aceitos": 1.0,
+        "erros_barrados": 0,
+        "erros_passaram": 0,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.1,
+        "aceitos": 1.0,
+        "precisao_aceitos": 1.0,
+        "erros_barrados": 0,
+        "erros_passaram": 0,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.15,
+        "aceitos": 1.0,
+        "precisao_aceitos": 1.0,
+        "erros_barrados": 0,
+        "erros_passaram": 0,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.2,
+        "aceitos": 1.0,
+        "precisao_aceitos": 1.0,
+        "erros_barrados": 0,
+        "erros_passaram": 0,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.25,
+        "aceitos": 1.0,
+        "precisao_aceitos": 1.0,
+        "erros_barrados": 0,
+        "erros_passaram": 0,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.3,
+        "aceitos": 1.0,
+        "precisao_aceitos": 1.0,
+        "erros_barrados": 0,
+        "erros_passaram": 0,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.35,
+        "aceitos": 1.0,
+        "precisao_aceitos": 1.0,
+        "erros_barrados": 0,
+        "erros_passaram": 0,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.4,
+        "aceitos": 1.0,
+        "precisao_aceitos": 1.0,
+        "erros_barrados": 0,
+        "erros_passaram": 0,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.45,
+        "aceitos": 1.0,
+        "precisao_aceitos": 1.0,
+        "erros_barrados": 0,
+        "erros_passaram": 0,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.5,
+        "aceitos": 1.0,
+        "precisao_aceitos": 1.0,
+        "erros_barrados": 0,
+        "erros_passaram": 0,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.55,
+        "aceitos": 1.0,
+        "precisao_aceitos": 1.0,
+        "erros_barrados": 0,
+        "erros_passaram": 0,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.6,
+        "aceitos": 1.0,
+        "precisao_aceitos": 1.0,
+        "erros_barrados": 0,
+        "erros_passaram": 0,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.65,
+        "aceitos": 1.0,
+        "precisao_aceitos": 1.0,
+        "erros_barrados": 0,
+        "erros_passaram": 0,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.7,
+        "aceitos": 1.0,
+        "precisao_aceitos": 1.0,
+        "erros_barrados": 0,
+        "erros_passaram": 0,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.75,
+        "aceitos": 1.0,
+        "precisao_aceitos": 1.0,
+        "erros_barrados": 0,
+        "erros_passaram": 0,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.8,
+        "aceitos": 0.981,
+        "precisao_aceitos": 1.0,
+        "erros_barrados": 0,
+        "erros_passaram": 0,
+        "acertos_barrados": 3
+      },
+      {
+        "limiar": 0.85,
+        "aceitos": 0.944,
+        "precisao_aceitos": 1.0,
+        "erros_barrados": 0,
+        "erros_passaram": 0,
+        "acertos_barrados": 9
+      },
+      {
+        "limiar": 0.9,
+        "aceitos": 0.625,
+        "precisao_aceitos": 1.0,
+        "erros_barrados": 0,
+        "erros_passaram": 0,
+        "acertos_barrados": 60
+      },
+      {
+        "limiar": 0.95,
+        "aceitos": 0.325,
+        "precisao_aceitos": 1.0,
+        "erros_barrados": 0,
+        "erros_passaram": 0,
+        "acertos_barrados": 108
+      }
+    ],
+    "erros": []
+  },
+  "baseline": {
+    "n_imagens": 100,
+    "frac_identifica_praga": 0.0,
+    "frac_menciona_planta": 0.48,
+    "score_top1_medio": 0.157393,
+    "top_rotulos": {
+      "zucchini": 14,
+      "ear": 10,
+      "tree frog": 9,
+      "velvet": 9,
+      "stole": 6,
+      "vase": 6,
+      "pitcher": 6,
+      "conch": 6,
+      "cuirass": 5,
+      "head cabbage": 5
+    }
+  },
+  "classificador": {
+    "n_imagens": 100,
+    "acuracia": 0.95,
+    "f1_macro": 0.9498193496587716,
+    "por_classe": {
+      "cercosporiose": {
+        "precision": 0.857,
+        "recall": 0.96,
+        "f1-score": 0.906,
+        "conf_media": 0.937
+      },
+      "ferrugem_comum": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "conf_media": 0.971
+      },
+      "helmintosporiose": {
+        "precision": 0.955,
+        "recall": 0.84,
+        "f1-score": 0.894,
+        "conf_media": 0.874
+      },
+      "saudavel": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "conf_media": 0.995
+      }
+    },
+    "matriz_confusao": {
+      "classes": [
+        "cercosporiose",
+        "ferrugem_comum",
+        "helmintosporiose",
+        "saudavel"
+      ],
+      "valores": [
+        [
+          24,
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          25,
+          0,
+          0
+        ],
+        [
+          4,
+          0,
+          21,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          25
+        ]
+      ]
+    },
+    "conf_media_certos": 0.954114736842105,
+    "conf_media_errados": 0.75198,
+    "ece": 0.012828000000000037,
+    "limiar_escolhido": 0.9,
+    "limiar_tabela": [
+      {
+        "limiar": 0.0,
+        "aceitos": 1.0,
+        "precisao_aceitos": 0.95,
+        "erros_barrados": 0,
+        "erros_passaram": 5,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.05,
+        "aceitos": 1.0,
+        "precisao_aceitos": 0.95,
+        "erros_barrados": 0,
+        "erros_passaram": 5,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.1,
+        "aceitos": 1.0,
+        "precisao_aceitos": 0.95,
+        "erros_barrados": 0,
+        "erros_passaram": 5,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.15,
+        "aceitos": 1.0,
+        "precisao_aceitos": 0.95,
+        "erros_barrados": 0,
+        "erros_passaram": 5,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.2,
+        "aceitos": 1.0,
+        "precisao_aceitos": 0.95,
+        "erros_barrados": 0,
+        "erros_passaram": 5,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.25,
+        "aceitos": 1.0,
+        "precisao_aceitos": 0.95,
+        "erros_barrados": 0,
+        "erros_passaram": 5,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.3,
+        "aceitos": 1.0,
+        "precisao_aceitos": 0.95,
+        "erros_barrados": 0,
+        "erros_passaram": 5,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.35,
+        "aceitos": 1.0,
+        "precisao_aceitos": 0.95,
+        "erros_barrados": 0,
+        "erros_passaram": 5,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.4,
+        "aceitos": 1.0,
+        "precisao_aceitos": 0.95,
+        "erros_barrados": 0,
+        "erros_passaram": 5,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.45,
+        "aceitos": 1.0,
+        "precisao_aceitos": 0.95,
+        "erros_barrados": 0,
+        "erros_passaram": 5,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.5,
+        "aceitos": 1.0,
+        "precisao_aceitos": 0.95,
+        "erros_barrados": 0,
+        "erros_passaram": 5,
+        "acertos_barrados": 0
+      },
+      {
+        "limiar": 0.55,
+        "aceitos": 0.99,
+        "precisao_aceitos": 0.949,
+        "erros_barrados": 0,
+        "erros_passaram": 5,
+        "acertos_barrados": 1
+      },
+      {
+        "limiar": 0.6,
+        "aceitos": 0.97,
+        "precisao_aceitos": 0.959,
+        "erros_barrados": 1,
+        "erros_passaram": 4,
+        "acertos_barrados": 2
+      },
+      {
+        "limiar": 0.65,
+        "aceitos": 0.97,
+        "precisao_aceitos": 0.959,
+        "erros_barrados": 1,
+        "erros_passaram": 4,
+        "acertos_barrados": 2
+      },
+      {
+        "limiar": 0.7,
+        "aceitos": 0.95,
+        "precisao_aceitos": 0.968,
+        "erros_barrados": 2,
+        "erros_passaram": 3,
+        "acertos_barrados": 3
+      },
+      {
+        "limiar": 0.75,
+        "aceitos": 0.93,
+        "precisao_aceitos": 0.978,
+        "erros_barrados": 3,
+        "erros_passaram": 2,
+        "acertos_barrados": 4
+      },
+      {
+        "limiar": 0.8,
+        "aceitos": 0.91,
+        "precisao_aceitos": 0.978,
+        "erros_barrados": 3,
+        "erros_passaram": 2,
+        "acertos_barrados": 6
+      },
+      {
+        "limiar": 0.85,
+        "aceitos": 0.88,
+        "precisao_aceitos": 0.977,
+        "erros_barrados": 3,
+        "erros_passaram": 2,
+        "acertos_barrados": 9
+      },
+      {
+        "limiar": 0.9,
+        "aceitos": 0.8,
+        "precisao_aceitos": 0.988,
+        "erros_barrados": 4,
+        "erros_passaram": 1,
+        "acertos_barrados": 16
+      },
+      {
+        "limiar": 0.95,
+        "aceitos": 0.74,
+        "precisao_aceitos": 1.0,
+        "erros_barrados": 5,
+        "erros_passaram": 0,
+        "acertos_barrados": 21
+      }
+    ]
+  },
+  "custos": {
+    "tempo_medio_ms_por_item": {
+      "folha_baseline": 70.4,
+      "folha_classificador": 7.2,
+      "nota": 1258.7
+    },
+    "precos_referencia": {
+      "docai_invoice_por_pagina": 0.01,
+      "vision_label_por_imagem": 0.0015,
+      "vertex_treino_hora_no": 3.465,
+      "vertex_endpoint_hora_no": 1.375
+    },
+    "volume": {
+      "notas": 2000,
+      "imagens": 5000
+    },
+    "estimativa_mensal_usd": {
+      "document_ai": 20.0,
+      "vision_api": 7.5,
+      "vertex_endpoint_24x7": 1003.75
+    }
+  }
+}

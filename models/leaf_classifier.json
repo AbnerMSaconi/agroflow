@@ -1,0 +1,56 @@
+{
+  "classes": [
+    "cercosporiose",
+    "ferrugem_comum",
+    "helmintosporiose",
+    "saudavel"
+  ],
+  "n_treino": 340,
+  "n_val": 60,
+  "epocas": 8,
+  "tempo_treino_s": 13.5,
+  "dispositivo": "cuda",
+  "gpu": "NVIDIA GeForce RTX 5060",
+  "historico": [
+    {
+      "epoca": 1,
+      "loss": 1.0046420847668367,
+      "acc_val": 0.7833333333333333
+    },
+    {
+      "epoca": 2,
+      "loss": 0.3850529085187351,
+      "acc_val": 0.8666666666666667
+    },
+    {
+      "epoca": 3,
+      "loss": 0.20039709841503817,
+      "acc_val": 0.9
+    },
+    {
+      "epoca": 4,
+      "loss": 0.09714285450823167,
+      "acc_val": 0.9166666666666666
+    },
+    {
+      "epoca": 5,
+      "loss": 0.11255995648748734,
+      "acc_val": 0.9
+    },
+    {
+      "epoca": 6,
+      "loss": 0.08382193549152683,
+      "acc_val": 0.9166666666666666
+    },
+    {
+      "epoca": 7,
+      "loss": 0.09490465767243329,
+      "acc_val": 0.9
+    },
+    {
+      "epoca": 8,
+      "loss": 0.054989146046778736,
+      "acc_val": 0.9
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+_downloads/
+models/*.pt
+results/sojatech.db
+bucket/**
+!bucket/**/
+!bucket/entrada/notas/.gitkeep
+!bucket/entrada/imagens/.gitkeep
+report/*.aux
+report/*.log
+report/*.out
+report/*.pdf

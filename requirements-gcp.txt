@@ -1,0 +1,6 @@
+-r requirements.txt
+google-cloud-documentai
+google-cloud-vision
+google-cloud-aiplatform
+google-cloud-bigquery[pandas]
+google-cloud-storage

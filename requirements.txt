@@ -1,0 +1,10 @@
+# torch/torchvision: instale antes pelo índice com CUDA (ver README)
+pymupdf
+reportlab
+rapidocr-onnxruntime
+pillow
+numpy
+pandas
+scikit-learn
+matplotlib
+watchdog
