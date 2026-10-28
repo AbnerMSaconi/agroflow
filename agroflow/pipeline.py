@@ -29,7 +29,10 @@ def process_invoice(path, nome=None) -> list[Row]:
     return rows
 
 
-def process_leaf(path, nome=None, baseline=True) -> list[Row]:
+def process_leaf(path, nome=None, baseline=True, classificador=None) -> list[Row]:
+    """classificador=None: usa o classificador se houver um disponível (ver leaves)."""
+    if classificador is None:
+        classificador = leaves.classificador_disponivel()
     nome = nome or Path(path).name
     rows = []
     if baseline:
@@ -38,10 +41,11 @@ def process_leaf(path, nome=None, baseline=True) -> list[Row]:
         ms = (time.perf_counter() - t) * 1000
         rows += [Row(nome, "folha_baseline", f"rotulo_{i}", l, s, duracao_ms=ms)
                  for i, (l, s) in enumerate(labels, 1)]
-    t = time.perf_counter()
-    classe, conf, _ = leaves.classify(path)
-    rows.append(Row(nome, "folha_classificador", "classe", classe, conf,
-                    duracao_ms=(time.perf_counter() - t) * 1000))
+    if classificador:
+        t = time.perf_counter()
+        classe, conf, _ = leaves.classify(path)
+        rows.append(Row(nome, "folha_classificador", "classe", classe, conf,
+                        duracao_ms=(time.perf_counter() - t) * 1000))
     return rows
 
 

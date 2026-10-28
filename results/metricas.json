@@ -1,5 +1,4 @@
 {
-  "backend": "local",
   "notas": {
     "n_notas": 40,
     "acerto_campos": 1.0,
@@ -769,9 +768,11 @@
   },
   "custos": {
     "tempo_medio_ms_por_item": {
-      "folha_baseline": 214.6,
-      "folha_classificador": 9.8,
-      "nota": 1253.5
+      "local": {
+        "folha_baseline": 214.6,
+        "folha_classificador": 9.8,
+        "nota": 1253.5
+      }
     },
     "precos_referencia": {
       "docai_invoice_por_pagina": 0.01,

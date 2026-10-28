@@ -19,6 +19,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("lote", choices=["notas", "folhas"])
     ap.add_argument("--sem-baseline", action="store_true", help="folhas: pula a linha de base")
+    ap.add_argument("--sem-classificador", action="store_true",
+                    help="folhas: só a linha de base (no GCP, o Vertex roda por scripts/vertex_batch.py)")
     args = ap.parse_args()
 
     if args.lote == "notas":
@@ -30,12 +32,14 @@ def main():
             storage.save(rows)
             print(nome, {r.campo: r.valor for r in rows})
     else:
-        storage.clear("folha_classificador")
+        if not args.sem_classificador:
+            storage.clear("folha_classificador")
         if not args.sem_baseline:
             storage.clear("folha_baseline")
         arquivos = sorted((config.LEAVES_DIR / "test").glob("*/*"))
         for i, p in enumerate(arquivos, 1):
-            storage.save(process_leaf(p, nome=f"{p.parent.name}/{p.name}", baseline=not args.sem_baseline))
+            storage.save(process_leaf(p, nome=f"{p.parent.name}/{p.name}", baseline=not args.sem_baseline,
+                                      classificador=not args.sem_classificador))
             if i % 20 == 0:
                 print(f"{i}/{len(arquivos)}")
     print(f"{len(arquivos)} arquivos processados com backend={config.BACKEND}")

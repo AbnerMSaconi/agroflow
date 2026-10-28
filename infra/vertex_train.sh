@@ -4,6 +4,7 @@
 #
 #   ./infra/vertex_train.sh upload     # imagens + CSV no bucket, cria dataset
 #   ./infra/vertex_train.sh train      # treino AutoML (8 horas de nó = mínimo)
+#   ./infra/vertex_train.sh batch      # classifica o teste por batch prediction (sem endpoint)
 #   ./infra/vertex_train.sh deploy     # implanta o modelo num endpoint (COBRA POR HORA)
 #   ./infra/vertex_train.sh undeploy   # remove a implantação: rode logo após testes/demo
 set -euo pipefail
@@ -12,11 +13,20 @@ PROJECT="${PROJECT:-agroflow-p2}"
 REGION="${REGION:-us-central1}"
 BUCKET="${BUCKET:-${PROJECT}-entrada}"
 cd "$(dirname "$0")/.."
-PY="${PY:-.venv/Scripts/python.exe}"
+if [ -z "${PY:-}" ]; then
+  if [ -x .venv/Scripts/python.exe ]; then PY=.venv/Scripts/python.exe; else PY=python3; fi
+fi
 
 case "${1:-}" in
   upload)
-    $PY scripts/prepare_leaves.py --gcs-bucket "$BUCKET"
+    # CSV de importação a partir das imagens já separadas em data/leaves/train
+    $PY - <<EOF
+import csv, pathlib
+imgs = sorted(pathlib.Path("data/leaves/train").glob("*/*.jpg"))
+with open("data/leaves/vertex_import.csv", "w", newline="") as f:
+    csv.writer(f).writerows((f"gs://$BUCKET/folhas/treino/{p.parent.name}/{p.name}", p.parent.name) for p in imgs)
+print(len(imgs), "imagens no CSV")
+EOF
     gcloud storage cp -r data/leaves/train/* "gs://$BUCKET/folhas/treino/"
     gcloud storage cp data/leaves/vertex_import.csv "gs://$BUCKET/folhas/vertex_import.csv"
     $PY - <<EOF
@@ -41,6 +51,10 @@ model = job.run(dataset=aiplatform.ImageDataset("$DATASET_ID"), budget_milli_nod
 print("MODEL_ID", model.name)
 EOF
     ;;
+  batch)
+    : "${MODEL_ID:?defina MODEL_ID}"
+    AGROFLOW_BACKEND=gcp GCP_PROJECT="$PROJECT" VERTEX_REGION="$REGION"       BQ_TABLE="${BQ_TABLE:-$PROJECT.agroflow.resultados}"       $PY scripts/vertex_batch.py --model-id "$MODEL_ID" --bucket "$BUCKET"
+    ;;
   deploy)
     : "${MODEL_ID:?defina MODEL_ID}"
     $PY - <<EOF
@@ -59,5 +73,5 @@ aiplatform.Endpoint("$VERTEX_ENDPOINT_ID").undeploy_all()
 print("implantação removida")
 EOF
     ;;
-  *) sed -n '2,9p' "$0"; exit 1 ;;
+  *) sed -n '2,10p' "$0"; exit 1 ;;
 esac

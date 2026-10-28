@@ -63,18 +63,25 @@ def save(rows: list[Row]) -> None:
 
 
 def clear(tipo: str | None = None) -> None:
-    """Apaga resultados locais (para reprocessar um lote do zero)."""
+    """Apaga resultados locais do backend atual (para reprocessar um lote do zero).
+
+    No BigQuery não apaga nada: linhas recém-inseridas por streaming não aceitam
+    DELETE, e a avaliação já fica com a gravação mais recente de cada campo.
+    """
+    if config.BACKEND == "gcp":
+        return
     with _sqlite() as con:
         if tipo:
-            con.execute("DELETE FROM resultados WHERE tipo = ?", (tipo,))
+            con.execute("DELETE FROM resultados WHERE tipo = ? AND backend = ?", (tipo, config.BACKEND))
         else:
-            con.execute("DELETE FROM resultados")
+            con.execute("DELETE FROM resultados WHERE backend = ?", (config.BACKEND,))
 
 
-def load_dataframe():
+def load_dataframe(fonte: str | None = None):
+    """fonte: "gcp" lê o BigQuery, qualquer outra o SQLite. Padrão: o backend atual."""
     import pandas as pd
 
-    if config.BACKEND == "gcp":
+    if (fonte or config.BACKEND) == "gcp":
         from google.cloud import bigquery
 
         return bigquery.Client(project=config.GCP_PROJECT or None).query(

@@ -1,6 +1,6 @@
 # Resultados (gerado por scripts/evaluate.py)
 
-Backend: `local`
+# Backend local
 
 ## Notas fiscais — desenvolvimento
 
@@ -69,7 +69,7 @@ Erros (13):
 | helmintosporiose | 0.955 | 0.84 | 0.894 | 0.874 |
 | saudavel | 1.0 | 1.0 | 1.0 | 0.995 |
 
-## Tempo e custo
+# Tempo e custo
 
-- tempo médio por item (ms): {'folha_baseline': 214.6, 'folha_classificador': 9.8, 'nota': 1253.5}
+- tempo médio por item (ms): {'local': {'folha_baseline': 214.6, 'folha_classificador': 9.8, 'nota': 1253.5}}
 - estimativa mensal GCP (USD): {'document_ai': 20.0, 'vision_api': 7.5, 'vertex_endpoint_24x7': 1003.75}

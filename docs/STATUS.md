@@ -1,15 +1,16 @@
-# Andamento do plano — atualizado em 26/10/2026
+# Andamento do plano — atualizado em 28/10/2026
 
 Legenda: ✅ feito · 🟡 pronto para rodar no GCP (código/script existe, falta executar) · ⬜ depende de você
 
-Decisão: tudo roda localmente com substitutos de custo zero (`AGROFLOW_BACKEND=local`).
-O código GCP está escrito atrás da mesma interface; ligar o GCP é opcional e
-só serve se a disciplina exigir os serviços de verdade ou para a comparação
-"genérico vs. local" no relatório.
+O enunciado exige usar de verdade Vision API, Vertex AI ou Document AI e apresentar
+o confidence obtido, então a parte GCP é obrigatória. Tudo que é 🟡 roda pelo
+notebook `notebooks/agroflow_colab.ipynb` assim que a conta de estudante for
+aprovada (previsão: até ~04/11). O backend local continua como comparação.
 
 ## Fase 0 — Setup e dados
 - 🟡 Projeto GCP, créditos, orçamento com alerta, APIs, service account → `infra/setup_gcp.sh`
-- ✅ Repositório Git com pastas (funções, avaliação, gabarito, relatório) — falta criar o remoto no GitHub
+- ✅ Repositório Git: github.com/AbnerMSaconi/agroflow (privado)
+- ⬜ Conta GCP de estudante (aguardando aprovação)
 - ✅ 40 DANFEs (`data/invoices/pdf`), 26 digitais + 14 "escaneadas", 2 layouts
 - ✅ Gabarito `data/invoices/gabarito.csv` (CNPJ emitente, número, data de emissão, valor total)
 - ✅ Dados pessoais: notas 100% fictícias, nada a anonimizar
@@ -29,7 +30,8 @@ só serve se a disciplina exigir os serviços de verdade ou para a comparação
 ## Fase 2 — Folhas
 - ✅ Linha de base (local: ResNet-50 ImageNet) — 0% das imagens com rótulo de doença; 🟡 Vision API
 - ✅ Classificador treinado (local: EfficientNet-B0, 13 s na GPU) — 95% de acurácia no teste
-- 🟡 Vertex AutoML: upload/dataset/treino/deploy/undeploy em `infra/vertex_train.sh`
+- 🟡 Vertex AutoML: upload/dataset/treino e avaliação no teste por batch prediction (sem endpoint)
+  — notebook B5–B7 ou `infra/vertex_train.sh`
 - ✅ Plano B (modelo local) já é o padrão
 
 ## Fase 3 — Pipeline
@@ -42,7 +44,9 @@ só serve se a disciplina exigir os serviços de verdade ou para a comparação
 - ⬜ (Opcional) Natural Language
 
 ## Fase 4 — Avaliação
-- ✅ `scripts/evaluate.py` (no lugar do notebook): tabelas, gráficos, LaTeX
+- ✅ `scripts/evaluate.py`: tabelas, gráficos, LaTeX
+- 🟡 Comparação Google vs. local nos mesmos testes (`report/tabelas/comparacao_backends.tex`,
+  testada com dados simulados; falta rodar com os resultados reais do GCP)
 - ✅ Limiar de confidence e erros barrados (`metricas.json`, gráficos `*_limiar.png`)
 - ✅ Tempo por item; custo GCP estimado (preços de referência — **conferir antes de citar**)
 

@@ -56,16 +56,28 @@ arquivos inválidos vão para `bucket/rejeitados/` com o motivo em
 
 ## Rodando no GCP
 
+**Caminho recomendado: [`notebooks/agroflow_colab.ipynb`](notebooks/agroflow_colab.ipynb) no Google Colab.**
+O Colab já traz o `gcloud`, autentica com a conta Google numa célula e roda tudo
+em ordem: backend local (parte A) e Google Cloud (parte B: setup com orçamento,
+Document AI, Vision API, treino AutoML, *batch prediction*, comparação Google vs.
+local, Cloud Function opcional e limpeza). O repositório é privado: salve um token
+de leitura do GitHub nos Secrets do Colab como `GITHUB_TOKEN`.
+
+Passo a passo manual (máquina com `gcloud`):
+
 1. `infra/setup_gcp.sh` — projeto, **orçamento com alerta**, APIs, service account, bucket, tabela BigQuery
 2. Console → Document AI → criar processador *Invoice Parser* → `export DOCAI_PROCESSOR_ID=...`
-3. `infra/vertex_train.sh upload | train | deploy` — e **`undeploy` logo após testes/demo**
-4. `infra/deploy_function.sh` — publica a Cloud Function com trigger no bucket
-5. Rodar os lotes contra as APIs e avaliar a partir do BigQuery:
+3. Notas e linha de base das folhas contra as APIs:
    ```bash
    pip install -r requirements-gcp.txt
-   export AGROFLOW_BACKEND=gcp GCP_PROJECT=... DOCAI_PROCESSOR_ID=... VERTEX_ENDPOINT_ID=... BQ_TABLE=projeto.agroflow.resultados
-   python scripts/run_batch.py notas && python scripts/run_batch.py folhas && python scripts/evaluate.py
+   export AGROFLOW_BACKEND=gcp GCP_PROJECT=... DOCAI_PROCESSOR_ID=... BQ_TABLE=projeto.agroflow.resultados
+   python scripts/run_batch.py notas && python scripts/run_batch.py folhas --sem-classificador
    ```
+4. `infra/vertex_train.sh upload | train | batch` — o `batch` classifica o teste
+   sem endpoint (nada fica cobrando por hora). `deploy`/`undeploy` só para demo ao vivo.
+5. `python scripts/evaluate.py` — com `AGROFLOW_BACKEND=gcp` lê o SQLite local e o
+   BigQuery e gera `report/tabelas/comparacao_backends.tex` (Google vs. local)
+6. `infra/deploy_function.sh` — publica a Cloud Function com trigger no bucket
 
 ## Estrutura
 
@@ -79,6 +91,7 @@ agroflow/            pacote compartilhado (local e Cloud Function)
 scripts/             gerar dados, treinar, lote, watcher, avaliação
 cloud_function/      entry point da Cloud Function
 infra/               scripts gcloud (setup, deploy, Vertex)
+notebooks/           agroflow_colab.ipynb: tudo pelo Colab, local e GCP
 data/                notas fictícias + gabarito, folhas treino/teste
 report/              relatório LaTeX (secoes/ para dar \input no template)
 docs/                STATUS.md (andamento do plano) e prints/

@@ -14,6 +14,11 @@ def baseline(path, k=5):
     return _impl().baseline(path, k)
 
 
+def classificador_disponivel() -> bool:
+    """No GCP o classificador só existe enquanto houver endpoint do Vertex implantado."""
+    return config.BACKEND != "gcp" or bool(config.VERTEX_ENDPOINT_ID)
+
+
 def classify(path):
     """Classe de doença: (classe, confidence, {classe: prob})."""
     return _impl().classify(path)

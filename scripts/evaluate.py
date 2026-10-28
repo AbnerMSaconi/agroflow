@@ -168,7 +168,7 @@ def avalia_notas(df, gabarito, prefixo="", sufixo="", titulo="Notas fiscais"):
     )
 
 
-def avalia_baseline(df):
+def avalia_baseline(df, sufixo="", titulo="Linha de base"):
     b = df[df.tipo == "folha_baseline"].copy()
     if b.empty:
         return None
@@ -182,13 +182,13 @@ def avalia_baseline(df):
 
     fig, ax = plt.subplots(figsize=(5.2, 3.0))
     freq[::-1].plot.barh(ax=ax)
-    ax.set(xlabel="imagens de teste", title="Linha de base: rótulo top-1 mais frequente")
-    salvar(fig, "baseline_rotulos.png")
+    ax.set(xlabel="imagens de teste", title=f"{titulo}: rótulo top-1 mais frequente")
+    salvar(fig, f"baseline_rotulos{sufixo}.png")
 
     tab = pd.DataFrame({"Rótulo top-1": freq.index, "Imagens": freq.values,
                         "Score médio": top1.groupby("valor").confidence.mean().reindex(freq.index).values})
-    latex_tabela(tab, "baseline_rotulos", "Linha de base: rótulos genéricos mais devolvidos.",
-                 "tab:baseline")
+    latex_tabela(tab, f"baseline_rotulos{sufixo}", f"{titulo}: rótulos genéricos mais devolvidos.",
+                 f"tab:baseline{sufixo.replace('_', '-')}")
     return dict(n_imagens=int(por_img.shape[0]),
                 frac_identifica_praga=float(por_img.algum_praga.mean()),
                 frac_menciona_planta=float(por_img.algum_planta.mean()),
@@ -196,7 +196,7 @@ def avalia_baseline(df):
                 top_rotulos=freq.to_dict())
 
 
-def avalia_classificador(df):
+def avalia_classificador(df, sufixo="", titulo="Classificador de folhas"):
     c = df[(df.tipo == "folha_classificador") & (df.campo == "classe")].copy()
     if c.empty:
         return None
@@ -215,8 +215,8 @@ def avalia_classificador(df):
             ax.text(j, i, cm[i, j], ha="center", va="center", color="white" if cm[i, j] > cm.max() / 2 else "black")
     ax.set_xticks(range(len(classes)), classes, rotation=30, ha="right")
     ax.set_yticks(range(len(classes)), classes)
-    ax.set(xlabel="previsto", ylabel="real", title="Matriz de confusão (teste)")
-    salvar(fig, "folhas_matriz_confusao.png")
+    ax.set(xlabel="previsto", ylabel="real", title=f"Matriz de confusão ({titulo.lower()})")
+    salvar(fig, f"folhas_matriz_confusao{sufixo}.png")
 
     # diagrama de confiabilidade
     edges = np.linspace(0, 1, 11)
@@ -231,16 +231,16 @@ def avalia_classificador(df):
     ax.plot([0, 1], [0, 1], ls="--", c="gray", lw=0.8, label="calibração perfeita")
     ax.scatter(mids, accs, s=[20 + n * 3 for n in ns], zorder=3, label="faixas de confidence")
     ax.set(xlabel="confidence médio da faixa", ylabel="acerto medido", xlim=(0, 1.02), ylim=(0, 1.02),
-           title="Confidence vs. acerto (folhas)")
+           title=f"Confidence vs. acerto ({titulo.lower()})")
     ax.legend(fontsize=7, loc="upper left")
-    salvar(fig, "folhas_calibracao.png")
-    grafico_limiar(limiar_df, limiar, "Folhas: efeito do limiar", "folhas_limiar.png")
+    salvar(fig, f"folhas_calibracao{sufixo}.png")
+    grafico_limiar(limiar_df, limiar, f"{titulo}: efeito do limiar", f"folhas_limiar{sufixo}.png")
 
     tab = pd.DataFrame([dict(Classe=k, Precisão=rep[k]["precision"], Recall=rep[k]["recall"],
                              F1=rep[k]["f1-score"], **{"Conf. média": conf_cls.conf_media[k]})
                         for k in classes])
-    latex_tabela(tab, "folhas_por_classe", "Classificador de folhas: métricas por classe no conjunto de teste.",
-                 "tab:folhas-classe")
+    latex_tabela(tab, f"folhas_por_classe{sufixo}",
+                 f"{titulo}: métricas por classe no conjunto de teste.", f"tab:folhas-classe{sufixo.replace('_', '-')}")
     return dict(n_imagens=int(len(c)), acuracia=float(rep["accuracy"]),
                 f1_macro=float(rep["macro avg"]["f1-score"]),
                 por_classe={k: {m: round(rep[k][m], 3) for m in ("precision", "recall", "f1-score")}
@@ -253,8 +253,9 @@ def avalia_classificador(df):
 
 
 def custos(df, vol_notas, vol_imgs):
-    tempo = df.groupby("tipo").apply(lambda g: g.groupby("arquivo").duracao_ms.first().mean(),
-                                     include_groups=False).round(1).to_dict()
+    tempo = {b: g.groupby("tipo").apply(lambda t: t.groupby("arquivo").duracao_ms.first().mean(),
+                                        include_groups=False).round(1).to_dict()
+             for b, g in df.groupby("backend")}
     mensal = dict(
         document_ai=vol_notas * PRECOS["docai_invoice_por_pagina"],
         vision_api=vol_imgs * PRECOS["vision_label_por_imagem"],
@@ -273,7 +274,23 @@ def custos(df, vol_notas, vol_imgs):
 
 
 def resumo_md(m):
-    L = ["# Resultados (gerado por scripts/evaluate.py)", "", f"Backend: `{config.BACKEND}`", ""]
+    L = ["# Resultados (gerado por scripts/evaluate.py)", ""]
+    if m.get("notas") or m.get("classificador"):
+        L += ["# Backend local", ""] + resumo_backend(m)
+    if g := m.get("gcp"):
+        L += ["# Google Cloud (Document AI, Vision API, Vertex AI)", ""] + resumo_backend(g)
+    if comp := m.get("comparacao"):
+        L += ["# Local vs. Google Cloud", "", "| métrica | local | Google |", "|---|---|---|"]
+        L += [f"| {r['Métrica']} | {r['Local']} | {r['Google']} |" for r in comp]
+        L.append("")
+    if k := m.get("custos"):
+        L += ["# Tempo e custo", "", f"- tempo médio por item (ms): {k['tempo_medio_ms_por_item']}",
+              f"- estimativa mensal GCP (USD): { {a: round(v, 2) for a, v in k['estimativa_mensal_usd'].items()} }", ""]
+    return "\n".join(L)
+
+
+def resumo_backend(m):
+    L = []
     for chave, titulo in [("notas", "Notas fiscais — desenvolvimento"),
                           ("notas_teste", "Notas fiscais — teste separado")]:
         if not (n := m.get(chave)):
@@ -308,10 +325,60 @@ def resumo_md(m):
         for k, v in c["por_classe"].items():
             L.append(f"| {k} | {v['precision']} | {v['recall']} | {v['f1-score']} | {v['conf_media']} |")
         L.append("")
-    if k := m.get("custos"):
-        L += ["## Tempo e custo", "", f"- tempo médio por item (ms): {k['tempo_medio_ms_por_item']}",
-              f"- estimativa mensal GCP (USD): { {a: round(v, 2) for a, v in k['estimativa_mensal_usd'].items()} }", ""]
-    return "\n".join(L)
+    return L
+
+
+def carregar():
+    """Resultados locais (SQLite) e, se configurado, os do GCP (BigQuery) numa tabela só."""
+    partes = [storage.load_dataframe("local")]
+    if config.BACKEND == "gcp":
+        partes.append(storage.load_dataframe("gcp"))
+    for p in partes:  # SQLite guarda texto ISO, BigQuery devolve TIMESTAMP
+        p["processado_em"] = pd.to_datetime(p.processado_em, utc=True, format="ISO8601")
+    df = pd.concat(partes, ignore_index=True).sort_values("processado_em")
+    return df.drop_duplicates(["arquivo", "tipo", "campo", "backend"], keep="last")
+
+
+def avalia_backend(df, backend):
+    """Todas as avaliações para um backend; saídas do GCP levam o sufixo _gcp."""
+    sfx, nome = ("", "") if backend == "local" else (f"_{backend}", ", Google")
+    return dict(
+        notas=avalia_notas(df, config.GABARITO_NOTAS, "", sfx, f"Notas (desenv.{nome})"),
+        notas_teste=avalia_notas(df, config.GABARITO_NOTAS_TESTE, "teste/", f"_teste{sfx}", f"Notas (teste{nome})"),
+        baseline=avalia_baseline(df, sfx, "Vision API" if backend == "gcp" else "Linha de base"),
+        classificador=avalia_classificador(df, sfx, "Vertex AI" if backend == "gcp" else "Classificador de folhas"),
+    )
+
+
+def comparacao(loc, gcp):
+    """Tabela lado a lado: mesmo conjunto de teste, backend local vs. serviços Google."""
+    def pega(m, *chaves):
+        for k in chaves:
+            m = (m or {}).get(k)
+        return m
+
+    def pct(v):
+        return "--" if v is None else f"{v:.1%}".replace("%", "\\%")
+
+    linhas = [
+        ("Notas (teste): acerto por campo", pct, ("notas_teste", "acerto_campos")),
+        ("Notas (teste): nota inteira certa", pct, ("notas_teste", "acerto_nota_inteira")),
+        ("Notas (teste): layout nunca visto", pct, ("notas_teste", "por_layout", "variante")),
+        ("Notas (teste): confidence médio dos erros", lambda v: "--" if v is None else f"{v:.3f}",
+         ("notas_teste", "conf_media_errados")),
+        ("Folhas: imagens com rótulo de doença (linha de base)", pct, ("baseline", "frac_identifica_praga")),
+        ("Folhas: acurácia do classificador", pct, ("classificador", "acuracia")),
+        ("Folhas: F1 macro", lambda v: "--" if v is None else f"{v:.3f}", ("classificador", "f1_macro")),
+        ("Folhas: ECE (erro de calibração)", lambda v: "--" if v is None else f"{v:.3f}", ("classificador", "ece")),
+    ]
+    tab = pd.DataFrame([dict(Métrica=n, Local=f(pega(loc, *k)), Google=f(pega(gcp, *k))) for n, f, k in linhas])
+    TAB.mkdir(parents=True, exist_ok=True)
+    corpo = tab.to_latex(index=False, escape=False, column_format="lrr")
+    (TAB / "comparacao_backends.tex").write_text(
+        "\\begin{table}[ht]\n\\centering\n\\small\n" + corpo
+        + "\\caption{Backend local vs. serviços Google nos mesmos conjuntos de teste.}\n"
+        "\\label{tab:comparacao}\n\\end{table}\n", encoding="utf-8")
+    return [{k: v.replace("\\%", "%") for k, v in r.items()} for r in tab.to_dict(orient="records")]
 
 
 def main():
@@ -320,16 +387,15 @@ def main():
     ap.add_argument("--volume-imagens", type=int, default=5000)
     args = ap.parse_args()
 
-    df = storage.load_dataframe().sort_values("processado_em")
-    df = df.drop_duplicates(["arquivo", "tipo", "campo"], keep="last")
+    df = carregar()
     # folhas sem "<classe>/" no nome vieram da demo pelo bucket e não têm gabarito
     df = df[(df.tipo == "nota") | df.arquivo.str.contains("/")]
-    m = dict(backend=config.BACKEND,
-             notas=avalia_notas(df, config.GABARITO_NOTAS, titulo="Notas (desenv.)"),
-             notas_teste=avalia_notas(df, config.GABARITO_NOTAS_TESTE, "teste/", "_teste", "Notas (teste)"),
-             baseline=avalia_baseline(df),
-             classificador=avalia_classificador(df),
-             custos=custos(df, args.volume_notas, args.volume_imagens))
+    # chaves de topo = backend local (formato de sempre); o GCP fica em m["gcp"]
+    m = avalia_backend(df[df.backend == "local"], "local")
+    if (df.backend == "gcp").any():
+        m["gcp"] = avalia_backend(df[df.backend == "gcp"], "gcp")
+        m["comparacao"] = comparacao(m, m["gcp"])
+    m["custos"] = custos(df, args.volume_notas, args.volume_imagens)
     (config.RESULTS / "metricas.json").write_text(json.dumps(m, indent=2, ensure_ascii=False, default=str),
                                                   encoding="utf-8")
     md = resumo_md(m)
