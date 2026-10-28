@@ -1,8 +1,8 @@
 """Cloud Function (2ª geração) disparada por google.cloud.storage.object.v1.finalized.
 
-Baixa o arquivo para /tmp, chama sojatech.pipeline.process_file (o mesmo código
-do pipeline local, com SOJATECH_BACKEND=gcp) e move arquivos inválidos para
-rejeitados/. O deploy copia o pacote sojatech/ para cá: veja infra/deploy_function.sh.
+Baixa o arquivo para /tmp, chama agroflow.pipeline.process_file (o mesmo código
+do pipeline local, com AGROFLOW_BACKEND=gcp) e move arquivos inválidos para
+rejeitados/. O deploy copia o pacote agroflow/ para cá: veja infra/deploy_function.sh.
 """
 import logging
 import os
@@ -11,8 +11,8 @@ import tempfile
 import functions_framework
 from google.cloud import storage
 
-os.environ.setdefault("SOJATECH_BACKEND", "gcp")
-from sojatech.pipeline import ArquivoInvalido, process_file  # noqa: E402
+os.environ.setdefault("AGROFLOW_BACKEND", "gcp")
+from agroflow.pipeline import ArquivoInvalido, process_file  # noqa: E402
 
 PREFIXO_ENTRADA = "entrada/"
 

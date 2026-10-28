@@ -2,7 +2,7 @@
 # Publica a Cloud Function (2ª geração) com trigger de finalização de objeto.
 set -euo pipefail
 
-PROJECT="${PROJECT:-sojatech-p2}"
+PROJECT="${PROJECT:-agroflow-p2}"
 REGION="${REGION:-us-central1}"
 BUCKET="${BUCKET:-${PROJECT}-entrada}"
 SA_EMAIL="pipeline-sa@$PROJECT.iam.gserviceaccount.com"
@@ -11,14 +11,14 @@ SA_EMAIL="pipeline-sa@$PROJECT.iam.gserviceaccount.com"
 cd "$(dirname "$0")/.."
 BUILD="$(mktemp -d)"
 cp cloud_function/main.py cloud_function/requirements.txt "$BUILD/"
-cp -r sojatech "$BUILD/"
+cp -r agroflow "$BUILD/"
 find "$BUILD" -name __pycache__ -prune -exec rm -rf {} +
 
-gcloud functions deploy sojatech-pipeline --gen2 --runtime=python312 --region="$REGION" \
+gcloud functions deploy agroflow-pipeline --gen2 --runtime=python312 --region="$REGION" \
   --source="$BUILD" --entry-point=on_upload --memory=1Gi --timeout=300s \
   --service-account="$SA_EMAIL" \
   --trigger-event-filters="type=google.cloud.storage.object.v1.finalized" \
   --trigger-event-filters="bucket=$BUCKET" \
-  --set-env-vars="SOJATECH_BACKEND=gcp,GCP_PROJECT=$PROJECT,GCP_LOCATION=us,DOCAI_PROCESSOR_ID=$DOCAI_PROCESSOR_ID,VERTEX_REGION=$REGION,VERTEX_ENDPOINT_ID=${VERTEX_ENDPOINT_ID:-},BQ_TABLE=$PROJECT.sojatech.resultados"
+  --set-env-vars="AGROFLOW_BACKEND=gcp,GCP_PROJECT=$PROJECT,GCP_LOCATION=us,DOCAI_PROCESSOR_ID=$DOCAI_PROCESSOR_ID,VERTEX_REGION=$REGION,VERTEX_ENDPOINT_ID=${VERTEX_ENDPOINT_ID:-},BQ_TABLE=$PROJECT.agroflow.resultados"
 
 echo "Teste: gcloud storage cp data/invoices/pdf/nota_001.pdf gs://$BUCKET/entrada/notas/"

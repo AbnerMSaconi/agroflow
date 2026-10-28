@@ -16,8 +16,8 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from sojatech import config  # noqa: E402
-from sojatech.pipeline import ArquivoInvalido, process_file  # noqa: E402
+from agroflow import config  # noqa: E402
+from agroflow.pipeline import ArquivoInvalido, process_file  # noqa: E402
 
 ENTRADA = config.BUCKET / "entrada"
 PROCESSADOS = config.BUCKET / "processados"

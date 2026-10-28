@@ -2,7 +2,7 @@
 __pycache__/
 _downloads/
 models/*.pt
-results/sojatech.db
+results/agroflow.db
 bucket/**
 !bucket/**/
 !bucket/entrada/notas/.gitkeep

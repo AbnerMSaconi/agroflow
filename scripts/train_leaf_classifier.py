@@ -18,8 +18,8 @@ from torch.utils.data import DataLoader, Subset
 from torchvision.datasets import ImageFolder
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from sojatech import config  # noqa: E402
-from sojatech.leaves.local_models import DEVICE, build_classifier, classifier_transform  # noqa: E402
+from agroflow import config  # noqa: E402
+from agroflow.leaves.local_models import DEVICE, build_classifier, classifier_transform  # noqa: E402
 
 
 def main():

@@ -10,8 +10,8 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from sojatech import config, storage  # noqa: E402
-from sojatech.pipeline import process_invoice, process_leaf  # noqa: E402
+from agroflow import config, storage  # noqa: E402
+from agroflow.pipeline import process_invoice, process_leaf  # noqa: E402
 
 
 def main():

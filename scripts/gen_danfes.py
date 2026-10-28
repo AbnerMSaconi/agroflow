@@ -24,7 +24,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from sojatech import config  # noqa: E402
+from agroflow import config  # noqa: E402
 
 W, H = A4
 M = 20  # margem

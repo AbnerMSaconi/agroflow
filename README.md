@@ -9,7 +9,7 @@ Pipeline orientado a eventos que (1) extrai campos de notas fiscais (DANFE) e
 uma avaliação que compara o **confidence** dos modelos com o **acerto medido**
 contra gabarito próprio.
 
-O mesmo código roda em dois backends, escolhidos por `SOJATECH_BACKEND`:
+O mesmo código roda em dois backends, escolhidos por `AGROFLOW_BACKEND`:
 
 | Papel | `gcp` | `local` (padrão, custo zero) |
 |---|---|---|
@@ -18,7 +18,7 @@ O mesmo código roda em dois backends, escolhidos por `SOJATECH_BACKEND`:
 | Notas fiscais | Document AI Invoice Parser | PyMuPDF + RapidOCR + regras por rótulo |
 | Linha de base folhas | Vision API label detection | ResNet-50 ImageNet (top-5 rótulos) |
 | Classificador folhas | Vertex AI AutoML | EfficientNet-B0 fine-tuned (GPU) |
-| Resultados | BigQuery | SQLite `results/sojatech.db` (mesmo esquema) |
+| Resultados | BigQuery | SQLite `results/agroflow.db` (mesmo esquema) |
 
 ```
 bucket/entrada/{notas,imagens}  ──►  pipeline.process_file()  ──►  tabela resultados
@@ -62,14 +62,14 @@ arquivos inválidos vão para `bucket/rejeitados/` com o motivo em
 5. Rodar os lotes contra as APIs e avaliar a partir do BigQuery:
    ```bash
    pip install -r requirements-gcp.txt
-   export SOJATECH_BACKEND=gcp GCP_PROJECT=... DOCAI_PROCESSOR_ID=... VERTEX_ENDPOINT_ID=... BQ_TABLE=projeto.sojatech.resultados
+   export AGROFLOW_BACKEND=gcp GCP_PROJECT=... DOCAI_PROCESSOR_ID=... VERTEX_ENDPOINT_ID=... BQ_TABLE=projeto.agroflow.resultados
    python scripts/run_batch.py notas && python scripts/run_batch.py folhas && python scripts/evaluate.py
    ```
 
 ## Estrutura
 
 ```
-sojatech/            pacote compartilhado (local e Cloud Function)
+agroflow/            pacote compartilhado (local e Cloud Function)
   config.py          backend, caminhos, variáveis GCP
   storage.py         tabela resultados: SQLite ou BigQuery
   pipeline.py        roteamento por extensão + rejeitados

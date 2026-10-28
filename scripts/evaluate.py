@@ -25,7 +25,7 @@ import pandas as pd  # noqa: E402
 from sklearn.metrics import classification_report, confusion_matrix  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from sojatech import config, storage  # noqa: E402
+from agroflow import config, storage  # noqa: E402
 
 FIG = config.RESULTS / "figures"
 TAB = config.ROOT / "report" / "tabelas"

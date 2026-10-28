@@ -2,7 +2,7 @@
 
 Legenda: ✅ feito · 🟡 pronto para rodar no GCP (código/script existe, falta executar) · ⬜ depende de você
 
-Decisão: tudo roda localmente com substitutos de custo zero (`SOJATECH_BACKEND=local`).
+Decisão: tudo roda localmente com substitutos de custo zero (`AGROFLOW_BACKEND=local`).
 O código GCP está escrito atrás da mesma interface; ligar o GCP é opcional e
 só serve se a disciplina exigir os serviços de verdade ou para a comparação
 "genérico vs. local" no relatório.
@@ -17,7 +17,7 @@ só serve se a disciplina exigir os serviços de verdade ou para a comparação
 - ✅ 100 treino / 25 teste por classe, teste fixo em `data/leaves/test`
 
 ## Fase 1 — Notas fiscais
-- 🟡 Processador Invoice Parser → criar no console; extrator pronto em `sojatech/invoices/docai_extractor.py`
+- 🟡 Processador Invoice Parser → criar no console; extrator pronto em `agroflow/invoices/docai_extractor.py`
 - ✅ Script de extração (campo, valor, confidence) — local: `local_extractor.py`
 - ✅ Rodado nas 40 notas e comparado campo a campo (`results/notas_comparacao.csv`)
 - ⬜ Prints de onde o parser genérico erra na DANFE (precisa do Document AI)
@@ -32,7 +32,7 @@ só serve se a disciplina exigir os serviços de verdade ou para a comparação
 ## Fase 3 — Pipeline
 - ✅ Bucket de entrada com `notas/` e `imagens/` (local) · 🟡 GCS
 - ✅ Função com trigger de arquivo novo (watchdog) · 🟡 Cloud Function `cloud_function/main.py`
-- ✅ Scripts das fases 1 e 2 reaproveitados como módulos (`sojatech/`)
+- ✅ Scripts das fases 1 e 2 reaproveitados como módulos (`agroflow/`)
 - ✅ Tabela de resultados (SQLite, mesmo esquema do BigQuery)
 - ✅ Rejeitados + log testados (extensão inválida, imagem corrompida)
 - ✅ Ponta a ponta com 5 notas + 5 imagens

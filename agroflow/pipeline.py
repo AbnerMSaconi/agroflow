@@ -10,7 +10,7 @@ from pathlib import Path
 from . import config, invoices, leaves
 from .storage import Row, save
 
-log = logging.getLogger("sojatech")
+log = logging.getLogger("agroflow")
 
 
 class ArquivoInvalido(Exception):

@@ -19,7 +19,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from sojatech import config  # noqa: E402
+from agroflow import config  # noqa: E402
 
 ORIGEM = config.ROOT / "_downloads" / "PlantVillage" / "raw" / "color"
 CLASSES = {  # pasta do PlantVillage -> nome curto da classe

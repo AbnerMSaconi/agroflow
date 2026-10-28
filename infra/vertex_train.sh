@@ -8,7 +8,7 @@
 #   ./infra/vertex_train.sh undeploy   # remove a implantação: rode logo após testes/demo
 set -euo pipefail
 
-PROJECT="${PROJECT:-sojatech-p2}"
+PROJECT="${PROJECT:-agroflow-p2}"
 REGION="${REGION:-us-central1}"
 BUCKET="${BUCKET:-${PROJECT}-entrada}"
 cd "$(dirname "$0")/.."
