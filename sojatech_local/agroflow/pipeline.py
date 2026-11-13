@@ -28,10 +28,16 @@ def process_invoice(path, nome=None) -> list[Row]:
     return rows
 
 
-def process_leaf(path, nome=None, baseline=True, classificador=None) -> list[Row]:
-    """classificador=None: usa o classificador se houver um disponível (ver leaves)."""
+TIPO_CLASSIFICADOR = {"produto": "folha_classificador", "lab": "folha_classificador_lab"}
+
+
+def process_leaf(path, nome=None, baseline=True, classificador=None, modelo="produto") -> list[Row]:
+    """classificador=None: usa o classificador se o arquivo do modelo existir (ver leaves).
+
+    modelo: "produto" (lab+campo, o das telas) ou "lab" (só laboratório); muda o tipo gravado.
+    """
     if classificador is None:
-        classificador = leaves.classificador_disponivel()
+        classificador = leaves.classificador_disponivel(modelo)
     nome = nome or Path(path).name
     rows = []
     if baseline:
@@ -42,8 +48,8 @@ def process_leaf(path, nome=None, baseline=True, classificador=None) -> list[Row
                  for i, (l, s) in enumerate(labels, 1)]
     if classificador:
         t = time.perf_counter()
-        classe, conf, _ = leaves.classify(path)
-        rows.append(Row(nome, "folha_classificador", "classe", classe, conf,
+        classe, conf, _ = leaves.classify(path, modelo=modelo)
+        rows.append(Row(nome, TIPO_CLASSIFICADOR[modelo], "classe", classe, conf,
                         duracao_ms=(time.perf_counter() - t) * 1000))
     return rows
 
