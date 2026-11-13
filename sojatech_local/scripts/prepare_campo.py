@@ -4,7 +4,9 @@ Três classes de milho com doença (o PlantDoc não tem milho saudável):
   Corn Gray leaf spot -> cercosporiose, Corn leaf blight -> helmintosporiose,
   Corn rust leaf -> ferrugem_comum.
 
-1. Baixa só essas pastas do PlantDoc (checkout esparso, ~124 MB em _downloads/PlantDoc).
+1. Baixa só essas pastas do PlantDoc para _downloads/PlantDoc. Sem checkout: o PlantDoc
+   tem nomes com "?" (inválidos no Windows) e o checkout falha; as fotos saem direto dos
+   objetos do git, com "_" no lugar desses caracteres.
 2. Junta o treino e o teste originais e tira as fotos repetidas (dHash a até 4 bits):
    o PlantDoc tem a mesma foto nos dois lados, por isso a divisão original não serve.
 3. Divide de novo por classe (50% treino, 15% validação, 35% teste, semente fixa).
@@ -14,6 +16,7 @@ Três classes de milho com doença (o PlantDoc não tem milho saudável):
 Uso: python -I scripts/prepare_campo.py
 (-I: as fotos vêm da internet; o script só passa caminhos para o Pillow.)
 """
+import re
 import shutil
 import subprocess
 import sys
@@ -29,6 +32,7 @@ from agroflow.leaves.conjuntos import (PARTICOES, PASTAS_PLANTDOC, dhash, dividi
 
 REPO_PLANTDOC = "https://github.com/pratikkayal/PlantDoc-Dataset"
 EXTENSOES = {".jpg", ".jpeg", ".png"}
+INVALIDOS_WINDOWS = re.compile(r'[<>:"|?*\\]')
 FONTE = """# Fotos de campo: PlantDoc
 
 As fotos desta pasta vêm do PlantDoc, publicado sob a licença Creative Commons
@@ -48,21 +52,49 @@ Alterações feitas por `sojatech_local/scripts/prepare_campo.py`:
 - fotos repetidas (hash perceptual a até 4 bits de distância) removidas, ficando uma;
 - divisão refeita por classe: 50% treino, 15% validação e 35% teste, com semente fixa.
 
-O `manifesto.csv` liga cada arquivo à foto de origem no repositório do PlantDoc.
+O `manifesto.csv` liga cada arquivo à foto de origem no repositório do PlantDoc (na coluna
+`origem`, caracteres que o Windows não aceita em nomes, como `?`, aparecem como `_`).
 """.format(repo=REPO_PLANTDOC, tabela="\n".join(f"| {p} | {c} |" for p, c in PASTAS_PLANTDOC.items()))
 
 
-def baixar_plantdoc(destino: Path) -> Path:
+def baixar_plantdoc(destino: Path, repo: str = REPO_PLANTDOC) -> Path:
+    """Grava as 6 pastas de milho do PlantDoc em destino/<train|test>/<pasta>/ e devolve destino.
+
+    Clona sem baixar fotos (--filter=blob:none) e lê só as das 6 pastas com `git cat-file`,
+    que busca cada uma no servidor (~0,7 s por foto). O arquivo .baixado marca o fim.
+    """
     destino = Path(destino)
-    pastas = [f"{split}/{pasta}" for split in ("train", "test") for pasta in PASTAS_PLANTDOC]
-    if all((destino / p).is_dir() for p in pastas):
+    pronto = destino / ".baixado"
+    if pronto.exists():
         return destino
     if not (destino / ".git").exists():
-        subprocess.run(["git", "clone", "--filter=blob:none", "--no-checkout", "--depth", "1",
-                        REPO_PLANTDOC, str(destino)], check=True)
+        subprocess.run(["git", "clone", "--filter=blob:none", "--no-checkout", "--depth", "1", repo, str(destino)],
+                       check=True)
     git = ["git", "-C", str(destino)]
-    subprocess.run(git + ["sparse-checkout", "set", "--no-cone"] + [f"/{p}/" for p in pastas], check=True)
-    subprocess.run(git + ["checkout"], check=True)
+    pastas = [f"{split}/{pasta}" for split in ("train", "test") for pasta in PASTAS_PLANTDOC]
+    arvore = subprocess.run(git + ["ls-tree", "-r", "-z", "HEAD", "--"] + pastas, check=True, capture_output=True).stdout
+    arquivos = []
+    for registro in filter(None, arvore.split(b"\0")):  # "<modo> <tipo> <oid>\t<caminho>"
+        meta, caminho = registro.split(b"\t", 1)
+        _, tipo, oid = meta.split()
+        if tipo == b"blob":
+            arquivos.append((oid.decode(), caminho.decode("utf-8")))
+    print(f"baixando {len(arquivos)} fotos do PlantDoc, uma a uma (alguns minutos)...", flush=True)
+    saida = subprocess.run(git + ["cat-file", "--batch"], input="".join(f"{oid}\n" for oid, _ in arquivos).encode(),
+                           check=True, capture_output=True).stdout
+    pos, gravados = 0, set()
+    for _, caminho in arquivos:  # cada objeto: "<oid> <tipo> <tamanho>\n<conteúdo>\n"
+        fim = saida.index(b"\n", pos)
+        tamanho = int(saida[pos:fim].split()[2])
+        dados, pos = saida[fim + 1:fim + 1 + tamanho], fim + 1 + tamanho + 1
+        pasta, nome = caminho.rsplit("/", 1)
+        alvo = destino / pasta / INVALIDOS_WINDOWS.sub("_", nome)
+        if alvo in gravados:
+            raise ValueError(f"dois arquivos viram o mesmo nome no Windows: {caminho}")
+        gravados.add(alvo)
+        alvo.parent.mkdir(parents=True, exist_ok=True)
+        alvo.write_bytes(dados)
+    pronto.write_text(f"{len(arquivos)} fotos de {repo}\n", encoding="utf-8")
     return destino
 
 

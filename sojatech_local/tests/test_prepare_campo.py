@@ -1,6 +1,7 @@
 """prepare_campo: fotos do PlantDoc viram o conjunto de campo (sem repetidas, até 512 px)."""
 import itertools
 import re
+import subprocess
 
 import pandas as pd
 import pytest
@@ -68,9 +69,35 @@ def test_fonte_tem_atribuicao(tmp_path, plantdoc_falso):
     assert "PlantDoc" in texto and "CC BY 4.0" in texto
 
 
-def test_baixar_nao_clona_se_as_pastas_existem(tmp_path, monkeypatch):
-    for split in ("train", "test"):
-        for pasta in (RUST, BLIGHT, GRAY):
-            (tmp_path / split / pasta).mkdir(parents=True)
+def repo_plantdoc_falso(raiz):
+    """Repositório git local (sem rede) com pastas do PlantDoc e um nome com "?", que só existe dentro do git."""
+    def git(*args, entrada=None):
+        return subprocess.run(["git", "-C", str(raiz), "-c", "core.protectNTFS=false", *args], input=entrada,
+                              check=True, capture_output=True).stdout
+
+    raiz.mkdir()
+    git("init", "-q")
+    for caminho, dados in {f"train/{RUST}/a.jpg": b"ferrugem", f"test/{BLIGHT}/b.jpg": b"mancha",
+                           f"train/{GRAY}/c.jpeg?itok=x.jpg": b"cinza", "train/Tomato leaf/t.jpg": b"tomate"}.items():
+        oid = git("hash-object", "-w", "--stdin", entrada=dados).decode().strip()
+        git("update-index", "--add", "--cacheinfo", f"100644,{oid},{caminho}")
+    git("-c", "user.name=teste", "-c", "user.email=teste@exemplo.invalid", "commit", "-q", "-m", "fotos")
+    git("config", "uploadpack.allowFilter", "true")
+    git("config", "uploadpack.allowAnySHA1InWant", "true")
+    return raiz
+
+
+def test_baixar_extrai_do_git_sem_checkout(tmp_path):
+    origem = repo_plantdoc_falso(tmp_path / "origem")
+    destino = baixar_plantdoc(tmp_path / "PlantDoc", repo=origem.as_uri())
+    assert (destino / f"train/{RUST}/a.jpg").read_bytes() == b"ferrugem"
+    assert (destino / f"test/{BLIGHT}/b.jpg").read_bytes() == b"mancha"
+    assert (destino / f"train/{GRAY}/c.jpeg_itok=x.jpg").read_bytes() == b"cinza"  # "?" não existe no Windows
+    assert not (destino / "train/Tomato leaf").exists()
+
+
+def test_baixar_nao_chama_o_git_se_ja_baixado(tmp_path, monkeypatch):
+    origem = repo_plantdoc_falso(tmp_path / "origem")
+    baixar_plantdoc(tmp_path / "PlantDoc", repo=origem.as_uri())
     monkeypatch.setattr(prepare_campo.subprocess, "run", lambda *a, **k: pytest.fail("não devia chamar o git"))
-    assert baixar_plantdoc(tmp_path) == tmp_path
+    assert baixar_plantdoc(tmp_path / "PlantDoc", repo=origem.as_uri()) == tmp_path / "PlantDoc"
