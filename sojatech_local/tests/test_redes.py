@@ -22,6 +22,15 @@ def test_transformacoes_no_tamanho_da_rede(nome, res):
     assert transformacoes(nome, False)(img).shape == transformacoes(nome, True)(img).shape == (3, res, res)
 
 
+@pytest.mark.parametrize("nome,res", PARES)
+def test_rede_nova_comeca_sem_preferencia(nome, res):
+    # última camada zerada: previsão uniforme no início, sem logits enormes vindos de atributos de norma grande
+    m = construir_rede(nome, 4, pretreinada=False).eval()
+    with torch.no_grad():
+        p = m(torch.randn(2, 3, res, res)).softmax(1)
+    assert torch.allclose(p, torch.full_like(p, 0.25))
+
+
 def test_ordem_de_tamanho():
     assert (n_parametros("efficientnet_b0") < n_parametros("efficientnet_v2_s")
             < n_parametros("convnext_small") < n_parametros("vit_b_16"))

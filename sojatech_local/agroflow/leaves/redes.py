@@ -28,18 +28,22 @@ def n_parametros(nome: str) -> int:
 
 
 def construir_rede(nome: str, n_classes: int, pretreinada: bool = True) -> nn.Module:
-    """A rede com a última camada trocada por uma de `n_classes` saídas.
+    """A rede com a última camada trocada por uma de `n_classes` saídas, zerada.
 
-    pretreinada=False não baixa nada: serve para carregar pesos já ajustados.
+    Zerada (como o torchvision faz na ViT), a rede começa prevendo todas as classes por
+    igual, sem logits enormes vindos de atributos de norma grande. pretreinada=False não
+    baixa nada: serve para carregar pesos já ajustados.
     """
     extra = {"image_size": resolucao(nome)} if nome.startswith("vit") else {}
     m = models.get_model(nome, weights=REDES[nome]["pesos"] if pretreinada else None, **extra)
     if nome.startswith("efficientnet"):
-        m.classifier[1] = nn.Linear(m.classifier[1].in_features, n_classes)
+        cabeca = m.classifier[1] = nn.Linear(m.classifier[1].in_features, n_classes)
     elif nome.startswith("convnext"):
-        m.classifier[2] = nn.Linear(m.classifier[2].in_features, n_classes)
+        cabeca = m.classifier[2] = nn.Linear(m.classifier[2].in_features, n_classes)
     else:
-        m.heads.head = nn.Linear(m.heads.head.in_features, n_classes)
+        cabeca = m.heads.head = nn.Linear(m.heads.head.in_features, n_classes)
+    nn.init.zeros_(cabeca.weight)
+    nn.init.zeros_(cabeca.bias)
     return m
 
 
