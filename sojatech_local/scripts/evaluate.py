@@ -8,6 +8,10 @@ Saídas:
 
 A tese do trabalho: confidence do modelo e acerto medido são números diferentes.
 
+Folhas: cada modelo (produto = lab+campo; lab = só laboratório) é medido no teste
+de laboratório e no de campo. O limiar de cada modelo sai da validação (campo para
+o produto, laboratório para o modelo lab); o teste nunca escolhe nada.
+
 Uso: python scripts/evaluate.py
 """
 import json
@@ -21,10 +25,12 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
-from sklearn.metrics import classification_report, confusion_matrix  # noqa: E402
+from sklearn.metrics import classification_report  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from agroflow import config, storage  # noqa: E402
+from agroflow.leaves.conjuntos import CLASSES, ler_nome_folha  # noqa: E402
+from agroflow.leaves.local_models import sha256_arquivo  # noqa: E402
 
 FIG = config.RESULTS / "figures"
 TAB = config.REPORT / "tabelas"
@@ -159,11 +165,36 @@ def avalia_notas(df, gabarito, prefixo="", sufixo="", titulo="Notas fiscais"):
     )
 
 
-def avalia_baseline(df, sufixo="", titulo="Linha de base"):
-    b = df[df.tipo == "folha_baseline"].copy()
+def folhas(df, tipo):
+    """Linhas de um tipo de folha com nome <conjunto>/<particao>/<classe>/<arquivo>, mais essas colunas.
+
+    Nomes fora desse formato (a demo pelo bucket, lotes antigos) não têm gabarito e saem.
+    """
+    f = df[df.tipo == tipo]
+    if tipo.startswith("folha_classificador"):
+        f = f[f.campo == "classe"]
+    partes = f.arquivo.map(ler_nome_folha)
+    f = f[partes.notna()].copy()
+    partes = list(partes[partes.notna()])
+    f["conjunto"] = [p[0] for p in partes]
+    f["particao"] = [p[1] for p in partes]
+    f["real"] = [p[2] for p in partes]
+    return f
+
+
+def limiar_validacao(f, conjunto):
+    """Limiar escolhido na validação do conjunto, com o critério de analise_limiar. None sem validação."""
+    v = f[(f.conjunto == conjunto) & (f.particao == "val")]
+    if v.empty:
+        return None
+    return analise_limiar(v.confidence.values.astype(float), (v.valor == v.real).values)[1]
+
+
+def avalia_baseline(df, conjunto, sufixo="", titulo="Linha de base"):
+    f = folhas(df, "folha_baseline")
+    b = f[(f.conjunto == conjunto) & (f.particao == "teste")].copy()
     if b.empty:
         return None
-    b["classe_real"] = b.arquivo.str.split("/").str[0]
     b["praga"] = b.valor.str.lower().str.contains("|".join(TERMOS_PRAGA))
     b["planta"] = b.valor.str.lower().str.contains("|".join(TERMOS_PLANTA))
     por_img = b.groupby("arquivo").agg(algum_praga=("praga", "any"), algum_planta=("planta", "any"),
@@ -187,60 +218,101 @@ def avalia_baseline(df, sufixo="", titulo="Linha de base"):
                 top_rotulos=freq.to_dict())
 
 
-def avalia_classificador(df, sufixo="", titulo="Classificador de folhas"):
-    c = df[(df.tipo == "folha_classificador") & (df.campo == "classe")].copy()
+def avalia_classificador(df, tipo, conjunto, limiar, sufixo="", titulo="Classificador de folhas", gravar=True):
+    """Um modelo (tipo) no teste de um conjunto, com o limiar que veio da validação.
+
+    As métricas por classe usam as classes presentes no teste (3 no campo, sem saudável);
+    prever uma classe ausente conta como erro e aparece na matriz, que tem as 4 classes
+    nas colunas. gravar=False não escreve figuras nem tabelas.
+    """
+    f = folhas(df, tipo)
+    c = f[(f.conjunto == conjunto) & (f.particao == "teste")].copy()
     if c.empty:
         return None
-    c["real"] = c.arquivo.str.split("/").str[0]
+    limiar = 0.0 if limiar is None else float(limiar)
     c["certo"] = c.valor == c.real
     classes = sorted(c.real.unique())
     rep = classification_report(c.real, c.valor, labels=classes, output_dict=True, zero_division=0)
-    cm = confusion_matrix(c.real, c.valor, labels=classes)
+    cm = pd.crosstab(c.real, c.valor).reindex(index=classes, columns=CLASSES, fill_value=0).values
     conf_cls = c.groupby("real").agg(conf_media=("confidence", "mean"), acerto=("certo", "mean"))
-    limiar_df, limiar = analise_limiar(c.confidence.values, c.certo.values)
+    conf, certo = c.confidence.values.astype(float), c.certo.values
+    limiar_df, _ = analise_limiar(conf, certo)  # só descreve o efeito; o limiar não é escolhido aqui
+    aceito = conf >= limiar
 
-    fig, ax = plt.subplots(figsize=(4.4, 3.8))
-    ax.imshow(cm, cmap="Greens")
-    for i in range(len(classes)):
-        for j in range(len(classes)):
-            ax.text(j, i, cm[i, j], ha="center", va="center", color="white" if cm[i, j] > cm.max() / 2 else "black")
-    ax.set_xticks(range(len(classes)), classes, rotation=30, ha="right")
-    ax.set_yticks(range(len(classes)), classes)
-    ax.set(xlabel="previsto", ylabel="real", title=f"Matriz de confusão ({titulo.lower()})")
-    salvar(fig, f"folhas_matriz_confusao{sufixo}.png")
+    if gravar:
+        fig, ax = plt.subplots(figsize=(4.4, 3.8))
+        ax.imshow(cm, cmap="Greens")
+        for i in range(len(classes)):
+            for j in range(len(CLASSES)):
+                ax.text(j, i, cm[i, j], ha="center", va="center", color="white" if cm[i, j] > cm.max() / 2 else "black")
+        ax.set_xticks(range(len(CLASSES)), CLASSES, rotation=30, ha="right")
+        ax.set_yticks(range(len(classes)), classes)
+        ax.set(xlabel="previsto", ylabel="real", title=f"Matriz de confusão ({titulo.lower()})")
+        salvar(fig, f"folhas_matriz_confusao{sufixo}.png")
 
-    # diagrama de confiabilidade
-    edges = np.linspace(0, 1, 11)
-    mids, accs, ns = [], [], []
-    for a, b in zip(edges[:-1], edges[1:]):
-        m = (c.confidence > a) & (c.confidence <= b)
-        if m.any():
-            mids.append(c.confidence[m].mean())
-            accs.append(c.certo[m].mean())
-            ns.append(int(m.sum()))
-    fig, ax = plt.subplots(figsize=(4.2, 3.6))
-    ax.plot([0, 1], [0, 1], ls="--", c="gray", lw=0.8, label="calibração perfeita")
-    ax.scatter(mids, accs, s=[20 + n * 3 for n in ns], zorder=3, label="faixas de confidence")
-    ax.set(xlabel="confidence médio da faixa", ylabel="acerto medido", xlim=(0, 1.02), ylim=(0, 1.02),
-           title=f"Confidence vs. acerto ({titulo.lower()})")
-    ax.legend(fontsize=7, loc="upper left")
-    salvar(fig, f"folhas_calibracao{sufixo}.png")
-    grafico_limiar(limiar_df, limiar, f"{titulo}: efeito do limiar", f"folhas_limiar{sufixo}.png")
+        # diagrama de confiabilidade
+        edges = np.linspace(0, 1, 11)
+        mids, accs, ns = [], [], []
+        for a, b in zip(edges[:-1], edges[1:]):
+            m = (c.confidence > a) & (c.confidence <= b)
+            if m.any():
+                mids.append(c.confidence[m].mean())
+                accs.append(c.certo[m].mean())
+                ns.append(int(m.sum()))
+        fig, ax = plt.subplots(figsize=(4.2, 3.6))
+        ax.plot([0, 1], [0, 1], ls="--", c="gray", lw=0.8, label="calibração perfeita")
+        ax.scatter(mids, accs, s=[20 + n * 3 for n in ns], zorder=3, label="faixas de confidence")
+        ax.set(xlabel="confidence médio da faixa", ylabel="acerto medido", xlim=(0, 1.02), ylim=(0, 1.02),
+               title=f"Confidence vs. acerto ({titulo.lower()})")
+        ax.legend(fontsize=7, loc="upper left")
+        salvar(fig, f"folhas_calibracao{sufixo}.png")
+        grafico_limiar(limiar_df, limiar, f"{titulo}: efeito do limiar", f"folhas_limiar{sufixo}.png")
 
-    tab = pd.DataFrame([dict(Classe=k, Precisão=rep[k]["precision"], Recall=rep[k]["recall"],
-                             F1=rep[k]["f1-score"], **{"Conf. média": conf_cls.conf_media[k]})
-                        for k in classes])
-    latex_tabela(tab, f"folhas_por_classe{sufixo}",
-                 f"{titulo}: métricas por classe no conjunto de teste.", f"tab:folhas-classe{sufixo.replace('_', '-')}")
-    return dict(n_imagens=int(len(c)), acuracia=float(rep["accuracy"]),
+        tab = pd.DataFrame([dict(Classe=k, Precisão=rep[k]["precision"], Recall=rep[k]["recall"],
+                                 F1=rep[k]["f1-score"], **{"Conf. média": conf_cls.conf_media[k]})
+                            for k in classes])
+        latex_tabela(tab, f"folhas_por_classe{sufixo}", f"{titulo}: métricas por classe no conjunto de teste.",
+                     f"tab:folhas-classe{sufixo.replace('_', '-')}")
+    return dict(n_imagens=int(len(c)), acuracia=float(certo.mean()),
                 f1_macro=float(rep["macro avg"]["f1-score"]),
                 por_classe={k: {m: round(rep[k][m], 3) for m in ("precision", "recall", "f1-score")}
                             | {"conf_media": round(float(conf_cls.conf_media[k]), 3)} for k in classes},
-                matriz_confusao=dict(classes=classes, valores=cm.tolist()),
-                conf_media_certos=float(c[c.certo].confidence.mean()),
-                conf_media_errados=float(c[~c.certo].confidence.mean()) if (~c.certo).any() else None,
-                ece=ece(c.confidence.values, c.certo.values.astype(float)),
-                limiar_escolhido=limiar, limiar_tabela=limiar_df.round(3).to_dict(orient="records"))
+                matriz_confusao=dict(reais=classes, previstas=CLASSES, valores=cm.tolist()),
+                conf_media_certos=float(conf[certo].mean()) if certo.any() else None,
+                conf_media_errados=float(conf[~certo].mean()) if (~certo).any() else None,
+                ece=ece(conf, certo.astype(float)),
+                limiar=limiar,
+                com_limiar=dict(aceitos=float(aceito.mean()),
+                                precisao_aceitos=float(certo[aceito].mean()) if aceito.any() else None,
+                                erros_barrados=int((~certo & ~aceito).sum()),
+                                erros_passaram=int((~certo & aceito).sum()),
+                                acertos_barrados=int((certo & ~aceito).sum())),
+                limiar_tabela=limiar_df.round(3).to_dict(orient="records"))
+
+
+def tabela_lab_vs_campo(m):
+    """Uma linha por modelo × teste: quanto cada modelo cai do laboratório para o campo."""
+    lab = m.get("classificador_lab") or {}
+    casos = [("lab+campo (produto)", "laboratório", m.get("classificador")),
+             ("lab+campo (produto)", "campo", m.get("classificador_campo")),
+             ("só laboratório", "laboratório", lab.get("lab")),
+             ("só laboratório", "campo", lab.get("campo"))]
+    linhas = []
+    for modelo, teste, r in casos:
+        if not r:
+            continue
+        cl = r["com_limiar"]
+        linhas.append({"Modelo": modelo, "Teste": teste, "Limiar": r["limiar"], "Acurácia": r["acuracia"],
+                       "F1 macro": r["f1_macro"], "Conf. dos erros": r["conf_media_errados"], "ECE": r["ece"],
+                       "Erros barrados": f"{cl['erros_barrados']} de {cl['erros_barrados'] + cl['erros_passaram']}"})
+    return pd.DataFrame(linhas)
+
+
+def tabela_disputa(d):
+    return pd.DataFrame([{"Rede": c["rede"] + (" (escolhida)" if c["rede"] == d["vencedora"] else ""),
+                          "Parâmetros (M)": c["n_parametros"] / 1e6, "F1 val. campo": c["f1_val_campo"],
+                          "F1 val. lab": c["f1_val_lab"], "Treino (min)": c["tempo_treino_s"] / 60}
+                         for c in d["candidatas"]])
 
 
 def tempos(df):
@@ -279,21 +351,43 @@ def resumo_backend(m):
             L += [f"| {e['arquivo']} | {e['campo']} | {e['esperado']} | {e['extraido']} | {e['confidence']} | {e['fonte']} |"
                   for e in n["erros"]]
         L.append("")
-    if b := m.get("baseline"):
-        L += ["## Linha de base (rótulos genéricos)", "",
-              f"- {b['frac_identifica_praga']:.1%} das imagens têm algum rótulo que identifica a doença",
-              f"- {b['frac_menciona_planta']:.1%} têm algum rótulo de planta/folha",
-              f"- top-1 mais comuns: {b['top_rotulos']}", ""]
-    if c := m.get("classificador"):
-        L += ["## Classificador de folhas", "",
-              f"- acurácia **{c['acuracia']:.1%}**, F1 macro **{c['f1_macro']:.3f}**",
-              f"- confidence médio: certos {c['conf_media_certos']:.3f} / errados {c['conf_media_errados']}",
-              f"- ECE {c['ece']:.3f}; limiar sugerido {c['limiar_escolhido']}", "",
-              "| classe | precisão | recall | F1 | conf. média |", "|---|---|---|---|---|"]
-        for k, v in c["por_classe"].items():
-            L.append(f"| {k} | {v['precision']} | {v['recall']} | {v['f1-score']} | {v['conf_media']} |")
+    for chave, titulo in [("baseline", "Linha de base (rótulos genéricos), teste de laboratório"),
+                          ("baseline_campo", "Linha de base (rótulos genéricos), teste de campo")]:
+        if b := m.get(chave):
+            L += [f"## {titulo}", "",
+                  f"- {b['frac_identifica_praga']:.1%} das imagens têm algum rótulo que identifica a doença",
+                  f"- {b['frac_menciona_planta']:.1%} têm algum rótulo de planta/folha",
+                  f"- top-1 mais comuns: {b['top_rotulos']}", ""]
+    lab = m.get("classificador_lab") or {}
+    for titulo, c in [("Classificador do produto (lab+campo), teste de laboratório", m.get("classificador")),
+                      ("Classificador do produto (lab+campo), teste de campo", m.get("classificador_campo")),
+                      ("Modelo só de laboratório, teste de laboratório", lab.get("lab")),
+                      ("Modelo só de laboratório, teste de campo", lab.get("campo"))]:
+        if c:
+            L += secao_classificador(titulo, c)
+    if d := m.get("disputa"):
+        L += ["## Disputa entre redes (validação; o teste não entra na escolha)", "",
+              "| rede | parâmetros (M) | F1 val. campo | F1 val. lab | treino (min) |", "|---|---|---|---|---|"]
+        L += [f"| {c['rede']}{' **(escolhida)**' if c['rede'] == d['vencedora'] else ''} "
+              f"| {c['n_parametros'] / 1e6:.1f} | {c['f1_val_campo']:.3f} | {c['f1_val_lab']:.3f} "
+              f"| {c['tempo_treino_s'] / 60:.1f} |" for c in d["candidatas"]]
         L.append("")
     return L
+
+
+def secao_classificador(titulo, c):
+    cl = c["com_limiar"]
+    certos = "--" if c["conf_media_certos"] is None else f"{c['conf_media_certos']:.3f}"
+    L = [f"## {titulo}", "",
+         f"- {c['n_imagens']} imagens; acurácia **{c['acuracia']:.1%}**, F1 macro **{c['f1_macro']:.3f}**",
+         f"- confidence médio: certos {certos} / errados {c['conf_media_errados']}",
+         f"- ECE {c['ece']:.3f}",
+         f"- limiar {c['limiar']} (escolhido na validação): aceita {cl['aceitos']:.1%}; erros barrados "
+         f"{cl['erros_barrados']}, erros que passam {cl['erros_passaram']}, acertos barrados {cl['acertos_barrados']}",
+         "", "| classe | precisão | recall | F1 | conf. média |", "|---|---|---|---|---|"]
+    L += [f"| {k} | {v['precision']} | {v['recall']} | {v['f1-score']} | {v['conf_media']} |"
+          for k, v in c["por_classe"].items()]
+    return L + [""]
 
 
 def carregar():
@@ -305,15 +399,35 @@ def carregar():
 
 def main():
     df = carregar()
-    # folhas sem "<classe>/" no nome vieram da demo pelo bucket e não têm gabarito
-    df = df[(df.tipo == "nota") | df.arquivo.str.contains("/")]
+    # folhas fora do formato <conjunto>/<particao>/<classe>/<arquivo> vieram da demo e não têm gabarito
+    df = df[(df.tipo == "nota") | df.arquivo.map(lambda a: ler_nome_folha(a) is not None)]
+    lim_produto = limiar_validacao(folhas(df, "folha_classificador"), "campo")
+    lim_lab = limiar_validacao(folhas(df, "folha_classificador_lab"), "lab")  # o modelo lab não vê campo
     m = dict(
         notas=avalia_notas(df, config.GABARITO_NOTAS, "", "", "Notas (desenv.)"),
         notas_teste=avalia_notas(df, config.GABARITO_NOTAS_TESTE, "teste/", "_teste", "Notas (teste)"),
-        baseline=avalia_baseline(df),
-        classificador=avalia_classificador(df),
+        baseline=avalia_baseline(df, "lab"),
+        baseline_campo=avalia_baseline(df, "campo", "_campo", "Linha de base (campo)"),
+        classificador=avalia_classificador(df, "folha_classificador", "lab", lim_produto, "",
+                                           "Classificador, laboratório"),
+        classificador_campo=avalia_classificador(df, "folha_classificador", "campo", lim_produto, "_campo",
+                                                 "Classificador, campo"),
+        classificador_lab=dict(
+            lab=avalia_classificador(df, "folha_classificador_lab", "lab", lim_lab, gravar=False),
+            campo=avalia_classificador(df, "folha_classificador_lab", "campo", lim_lab, "_lab_no_campo",
+                                       "Modelo lab, campo")),
+        disputa=json.loads(config.DISPUTA.read_text(encoding="utf-8")) if config.DISPUTA.exists() else None,
+        modelo_avaliado_sha256=sha256_arquivo(config.LEAF_MODEL) if config.LEAF_MODEL.exists() else None,
         custos=dict(tempo_medio_ms_por_item=tempos(df)),
     )
+    if m["classificador"]:
+        m["classificador"]["limiar_escolhido"] = m["classificador"]["limiar"]  # as telas leem esta chave
+    if len(t := tabela_lab_vs_campo(m)):
+        latex_tabela(t, "folhas_lab_vs_campo", "Classificadores de folha nos testes de laboratório e de campo; "
+                     "o limiar de cada modelo foi escolhido na validação.", "tab:folhas-lab-vs-campo")
+    if m["disputa"]:
+        latex_tabela(tabela_disputa(m["disputa"]), "disputa_redes", "Disputa entre redes: F1 macro na validação "
+                     "(o teste não entra na escolha).", "tab:disputa-redes")
     (config.RESULTS / "metricas.json").write_text(json.dumps(m, indent=2, ensure_ascii=False, default=str),
                                                   encoding="utf-8")
     md = resumo_md(m)
