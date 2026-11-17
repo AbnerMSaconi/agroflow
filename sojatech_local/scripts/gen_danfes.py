@@ -317,18 +317,24 @@ def main():
     ap.add_argument("--escaneadas", type=float, default=0.35, help="fração de notas escaneadas")
     ap.add_argument("--seed", type=int, help="padrão: 2026 (dev) ou 7 (teste)")
     ap.add_argument("--conjunto", choices=["dev", "teste"], default="dev")
+    ap.add_argument("--pasta", help="pasta nova em data/invoices/ (não toca no dev nem no teste)")
+    ap.add_argument("--variante", action="store_true", help="inclui o layout 'variante' fora do teste")
     args = ap.parse_args()
 
     teste = args.conjunto == "teste"
     rng = random.Random(args.seed if args.seed is not None else (7 if teste else 2026))
-    base = config.INVOICES_TEST_DIR if teste else config.INVOICES_DIR
-    gabarito = config.GABARITO_NOTAS_TESTE if teste else config.GABARITO_NOTAS
+    if args.pasta:
+        base = config.INVOICES_DIR / args.pasta
+        gabarito = base / "gabarito.csv"
+    else:
+        base = config.INVOICES_TEST_DIR if teste else config.INVOICES_DIR
+        gabarito = config.GABARITO_NOTAS_TESTE if teste else config.GABARITO_NOTAS
     pdf_dir = base / "pdf"
     pdf_dir.mkdir(parents=True, exist_ok=True)
     linhas = []
     for i in range(1, args.n + 1):
         n = gera_nota(i, rng)
-        if teste:
+        if teste or args.variante:
             layout = rng.choice(["padrao", "compacto", "variante"])
         else:
             layout = "padrao" if rng.random() < 0.65 else "compacto"
