@@ -14,7 +14,7 @@ teste/cercosporiose/cercosporiose_campo_036.jpg,cercosporiose,teste,train/Corn G
 teste/cercosporiose/cercosporiose_campo_039.jpg,cercosporiose,teste,train/Corn Gray leaf spot/Kelley%20Gray%20leaf%20spot.jpg,c919814088d0e0cc
 teste/cercosporiose/cercosporiose_campo_040.jpg,cercosporiose,teste,train/Corn Gray leaf spot/Ontario-Field-Crop-Report_July_27_2017_f3-1024x681.jpg,e464e6e2c9cd356c
 teste/cercosporiose/cercosporiose_campo_044.jpg,cercosporiose,teste,train/Corn Gray leaf spot/cornGLS2.jpg,a0a3e3c1f1101cc5
-teste/cercosporiose/cercosporiose_campo_046.jpg,cercosporiose,teste,train/Corn Gray leaf spot/g1902-1.jpg,bcf2c3f43434b493
+teste/cercosporiose/cercosporiose_campo_046.jpg,cercosporiose,teste,train/Corn Gray leaf spot/g1902-1.jpg,bcf2c3f43434b491
 teste/cercosporiose/cercosporiose_campo_049.jpg,cercosporiose,teste,train/Corn Gray leaf spot/gls99-anamosa.jpg,ccc8cdcd4b6b63f3
 teste/cercosporiose/cercosporiose_campo_050.jpg,cercosporiose,teste,train/Corn Gray leaf spot/gray%20leaf%20spot.jpg,f474e4e5ed23a3fc
 teste/cercosporiose/cercosporiose_campo_053.jpg,cercosporiose,teste,train/Corn Gray leaf spot/gray_leaf_spot__1-14B8612C8B60CDBC8E2.jpg,d2b8b8e7e769baae
@@ -24,7 +24,7 @@ teste/cercosporiose/cercosporiose_campo_059.jpg,cercosporiose,teste,train/Corn G
 teste/cercosporiose/cercosporiose_campo_060.jpg,cercosporiose,teste,train/Corn Gray leaf spot/grey_leaf_spot.jpg,7ff9e88c2cfcfcfe
 teste/ferrugem_comum/ferrugem_comum_campo_000.jpg,ferrugem_comum,teste,test/Corn rust leaf/0796.39maizerust.jpg,b0b0b8f9d9c46060
 teste/ferrugem_comum/ferrugem_comum_campo_001.jpg,ferrugem_comum,teste,test/Corn rust leaf/0796.40comrust.jpg,3032c1c7fcf1c026
-teste/ferrugem_comum/ferrugem_comum_campo_004.jpg,ferrugem_comum,teste,test/Corn rust leaf/12-19striprustJIM.jpg,bebd93dbdb5b93f7
+teste/ferrugem_comum/ferrugem_comum_campo_004.jpg,ferrugem_comum,teste,test/Corn rust leaf/12-19striprustJIM.jpg,bcbd93dbdb5b93f7
 teste/ferrugem_comum/ferrugem_comum_campo_006.jpg,ferrugem_comum,teste,test/Corn rust leaf/2256-body-1501555581-1.jpg,32326299999b33b8
 teste/ferrugem_comum/ferrugem_comum_campo_007.jpg,ferrugem_comum,teste,test/Corn rust leaf/393.jpg,b992f2f060e9d3c3
 teste/ferrugem_comum/ferrugem_comum_campo_011.jpg,ferrugem_comum,teste,train/Corn rust leaf/37310253326_7f32b316d1_b.jpg,181c1e33fbd626c0
@@ -303,7 +303,7 @@ treino/helmintosporiose/helmintosporiose_campo_160.jpg,helmintosporiose,treino,t
 treino/helmintosporiose/helmintosporiose_campo_162.jpg,helmintosporiose,treino,train/Corn leaf blight/ncls-2016-a-shirley.jpg,26263616069e969b
 treino/helmintosporiose/helmintosporiose_campo_163.jpg,helmintosporiose,treino,train/Corn leaf blight/ncorn_leaf_blight_0796_02.jpg,0ce4e6f4f3917093
 treino/helmintosporiose/helmintosporiose_campo_167.jpg,helmintosporiose,treino,train/Corn leaf blight/northern-corn-leaf-blight-exserohilum-turcicum-lesions-on-a-maize-leaf-south-africa-xe3a7j.jpg,757534b0b393c1c3
-treino/helmintosporiose/helmintosporiose_campo_168.jpg,helmintosporiose,treino,train/Corn leaf blight/northern-corn-leaf-blight_2.jpg,f19119909b1b5158
+treino/helmintosporiose/helmintosporiose_campo_168.jpg,helmintosporiose,treino,train/Corn leaf blight/northern-corn-leaf-blight.jpg,f19119909b1b5158
 treino/helmintosporiose/helmintosporiose_campo_169.jpg,helmintosporiose,treino,train/Corn leaf blight/northern_corn_leaf_blight_university_of_delaware-600x400.jpg,9be0c5802b75cb33
 treino/helmintosporiose/helmintosporiose_campo_174.jpg,helmintosporiose,treino,train/Corn leaf blight/show_picture.asp_id=aaaaaaaaaanoroz&w=524.jpg,ac5cbe77eb9864c4
 treino/helmintosporiose/helmintosporiose_campo_176.jpg,helmintosporiose,treino,train/Corn leaf blight/stewartswilt.jpg,8f0d629fd6dd782c
