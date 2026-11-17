@@ -70,7 +70,7 @@ def boxes_from_pdf(path) -> tuple[list[Box], str]:
 
 RE_CNPJ = re.compile(r"\d{2}[.,]?\d{3}[.,]?\d{3}\s?/\s?\d{4}\s?-?\s?\d{2}")
 RE_DATA = re.compile(r"\b(\d{2})[/.-](\d{2})[/.-](\d{4})\b")
-RE_VALOR = re.compile(r"\b\d{1,3}(?:[.\s]\d{3})*,\d{2}\b")
+RE_VALOR = re.compile(r"\b\d{1,3}(?:[.\s]\d{3})*[,.]\d{2}\b")  # OCR às vezes troca a vírgula por ponto
 RE_NUMERO = re.compile(r"N[º°oO0]?\.?\s*:?\s*(\d{3}[.,]\d{3}[.,]\d{3})")  # OCR costuma perder o "º"
 
 
@@ -97,7 +97,10 @@ def fmt_cnpj(c: str) -> str:
 
 
 def valor_float(s: str) -> float:
-    return float(re.sub(r"[.\s]", "", s).replace(",", "."))
+    s = re.sub(r"\s", "", s)
+    if re.search(r"\.\d{2}$", s) and not re.search(r",\d{2}$", s):  # decimal com ponto (OCR)
+        return float(s.replace(",", ""))
+    return float(re.sub(r"\.", "", s).replace(",", "."))
 
 
 def achar_chave(boxes) -> str | None:
@@ -147,7 +150,7 @@ def valor_perto(boxes, rotulo: re.Pattern, padrao: re.Pattern, max_dy=28):
 
 
 R_EMISSAO = re.compile(r"(DATA\s*DA\s*EMISS[ÃA]O|D[Tt]\.?\s*EMISS[ÃA]O|EMISS[ÃA]O)", re.I)
-R_TOTAL = re.compile(r"(VALOR\s*TOTAL\s*DA\s*NOTA|V\.?\s*TOTAL\s*(DA\s*)?NF-?e?)", re.I)
+R_TOTAL = re.compile(r"(VALOR\s*TOTAL\s*DA\s*(NOTA|NF-?e?)|V\.?\s*TOTAL\s*(DA\s*)?(NOTA|NF-?e?))", re.I)
 R_CNPJ_EMIT = re.compile(r"^CNPJ(?!\s*/)(\s*EMITENTE)?\s*:?\s*", re.I)  # não pega "CNPJ / CPF"
 
 
