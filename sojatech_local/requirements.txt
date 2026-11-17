@@ -1,7 +1,10 @@
 # torch/torchvision: instale antes pelo índice com CUDA (ver README)
 pymupdf
 reportlab
-rapidocr-onnxruntime
+# 1.4.x traz os modelos PP-OCRv4, que são os dos resultados versionados. O pacote declara
+# Python <3.13: no 3.13+ o pip recua em silêncio para a 1.2.3 (PP-OCRv3), que lê pior as notas
+# escaneadas. Nesse caso instale com: pip install --ignore-requires-python rapidocr-onnxruntime==1.4.4
+rapidocr-onnxruntime==1.4.4
 pillow
 numpy
 pandas
