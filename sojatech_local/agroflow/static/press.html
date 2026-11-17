@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SojaTech AgroFlow — Esteira ao Vivo (/press)</title>
+  <link rel="stylesheet" href="/static/tokens.css">
+  <link rel="stylesheet" href="/static/press.css">
+</head>
+<body>
+  <div class="press-app">
+    <header class="press-cabecalho">
+      <div class="press-marca">
+        <div class="press-logo" aria-hidden="true">SF</div>
+        <div class="press-titulos">
+          <div class="press-titulo-linha">
+            <h1 class="press-titulo">SojaTech · AgroFlow</h1>
+            <span class="press-rota-tag">/press</span>
+          </div>
+          <p class="press-subtitulo">
+            Pipeline orientado a eventos: notas fiscais e diagnóstico foliar com controle de confiança
+          </p>
+        </div>
+      </div>
+
+      <div class="press-controles">
+        <span id="status-modelos" class="status-pill status-neutro" aria-live="polite">
+          <span class="status-ponto" aria-hidden="true"></span>
+          <span class="status-texto">Modelos carregando…</span>
+        </span>
+
+        <a href="/prod" class="press-link-prod" title="Abrir tela de operação (/prod)">
+          Operação (/prod)
+        </a>
+
+        <div class="press-botoes">
+          <button id="btn-exemplos" type="button" class="btn btn-primario">
+            Enviar exemplos
+          </button>
+          <button
+            id="btn-limpar"
+            type="button"
+            class="btn btn-perigo"
+            disabled
+            title="Aguarde o processamento terminar para limpar"
+          >
+            Limpar
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div id="aviso-modelos" class="aviso-modelos" hidden role="alert">
+      <strong>Modelo de folhas ausente:</strong> notas fiscais funcionam normalmente, mas fotos de folhas serão rejeitadas até treinar com
+      <code>python scripts/train_leaf_classifier.py</code>.
+    </div>
+
+    <div id="press-toast" class="press-toast" hidden aria-live="polite"></div>
+
+    <main class="press-esteira" aria-label="Esteira de processamento em 5 etapas">
+      <section class="esteira-coluna" data-estado="chegou" aria-labelledby="titulo-chegou">
+        <header class="coluna-cabecalho">
+          <div class="coluna-cabecalho-texto">
+            <h2 id="titulo-chegou" class="coluna-titulo">
+              <span class="coluna-icone" aria-hidden="true">•</span>
+              <span>Chegou</span>
+            </h2>
+            <span class="coluna-dica">Ordem da fila</span>
+          </div>
+          <span id="cont-chegou" class="coluna-contagem" aria-label="Total em Chegou">0</span>
+        </header>
+        <div id="lista-chegou" class="coluna-lista" role="list"></div>
+      </section>
+
+      <section class="esteira-coluna" data-estado="processando" aria-labelledby="titulo-processando">
+        <header class="coluna-cabecalho">
+          <div class="coluna-cabecalho-texto">
+            <h2 id="titulo-processando" class="coluna-titulo">
+              <span class="coluna-icone coluna-icone-girar" aria-hidden="true">⟳</span>
+              <span>Processando</span>
+            </h2>
+            <span class="coluna-dica">Fila única</span>
+          </div>
+          <span id="cont-processando" class="coluna-contagem" aria-label="Total em Processando">0</span>
+        </header>
+        <div id="lista-processando" class="coluna-lista" role="list"></div>
+      </section>
+
+      <section class="esteira-coluna" data-estado="aceito" aria-labelledby="titulo-aceito">
+        <header class="coluna-cabecalho">
+          <div class="coluna-cabecalho-texto">
+            <h2 id="titulo-aceito" class="coluna-titulo">
+              <span class="coluna-icone" aria-hidden="true">✓</span>
+              <span>Aceito</span>
+            </h2>
+            <span class="coluna-dica">Confiança ≥ limiar</span>
+          </div>
+          <span id="cont-aceito" class="coluna-contagem" aria-label="Total em Aceito">0</span>
+        </header>
+        <div id="lista-aceito" class="coluna-lista" role="list"></div>
+      </section>
+
+      <section class="esteira-coluna" data-estado="conferir" aria-labelledby="titulo-conferir">
+        <header class="coluna-cabecalho">
+          <div class="coluna-cabecalho-texto">
+            <h2 id="titulo-conferir" class="coluna-titulo">
+              <span class="coluna-icone" aria-hidden="true">!</span>
+              <span>Conferir</span>
+            </h2>
+            <span class="coluna-dica">Revisão humana</span>
+          </div>
+          <span id="cont-conferir" class="coluna-contagem" aria-label="Total em Conferir">0</span>
+        </header>
+        <div id="lista-conferir" class="coluna-lista" role="list"></div>
+      </section>
+
+      <section class="esteira-coluna" data-estado="rejeitado" aria-labelledby="titulo-rejeitado">
+        <header class="coluna-cabecalho">
+          <div class="coluna-cabecalho-texto">
+            <h2 id="titulo-rejeitado" class="coluna-titulo">
+              <span class="coluna-icone" aria-hidden="true">✕</span>
+              <span>Rejeitado</span>
+            </h2>
+            <span class="coluna-dica">Formato ou erro</span>
+          </div>
+          <span id="cont-rejeitado" class="coluna-contagem" aria-label="Total em Rejeitado">0</span>
+        </header>
+        <div id="lista-rejeitado" class="coluna-lista" role="list"></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Painel lateral de detalhe -->
+  <div id="gaveta-detalhe" class="press-gaveta" hidden aria-hidden="true">
+    <div id="gaveta-backdrop" class="gaveta-backdrop"></div>
+    <aside class="gaveta-painel" role="dialog" aria-modal="true" aria-labelledby="gaveta-titulo">
+      <header class="gaveta-topo">
+        <span id="gaveta-titulo" class="gaveta-kicker">Detalhe do item na esteira</span>
+        <button id="btn-fechar-gaveta" type="button" class="btn gaveta-fechar" aria-label="Fechar painel de detalhe (Esc)">
+          <span>Fechar</span>
+          <kbd class="gaveta-kbd">Esc</kbd>
+        </button>
+      </header>
+      <div id="gaveta-conteudo" class="gaveta-conteudo"></div>
+    </aside>
+  </div>
+
+  <!-- Camada de soltar arquivos (visível apenas durante drag-and-drop) -->
+  <div id="drop-overlay" class="drop-overlay" aria-hidden="true">
+    <div class="drop-overlay-cartao">
+      <div class="drop-overlay-icone" aria-hidden="true">↑</div>
+      <p class="drop-overlay-titulo">Solte os arquivos em qualquer ponto da tela</p>
+      <p class="drop-overlay-texto">
+        Notas fiscais (PDF) e fotos de folhas (JPG, PNG) entram em <code>bucket/entrada/</code> e seguem pela esteira.
+      </p>
+    </div>
+  </div>
+
+  <script src="/static/api.js"></script>
+  <script src="/static/detalhe.js"></script>
+  <script src="/static/press.js"></script>
+</body>
+</html>

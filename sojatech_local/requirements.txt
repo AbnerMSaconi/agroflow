@@ -11,3 +11,6 @@ pandas
 scikit-learn
 matplotlib
 watchdog
+fastapi
+uvicorn
+python-multipart

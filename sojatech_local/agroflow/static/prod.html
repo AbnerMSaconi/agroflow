@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SojaTech AgroFlow — Operação (/prod)</title>
+  <link rel="stylesheet" href="/static/tokens.css">
+  <link rel="stylesheet" href="/static/prod.css">
+</head>
+<body>
+  <div class="prod-app">
+    <header class="prod-cabecalho">
+      <div class="prod-marca">
+        <div class="prod-marca-linha">
+          <span class="prod-logo" aria-hidden="true">SF</span>
+          <div>
+            <div class="prod-kicker">SojaTech · AgroFlow</div>
+            <h1 class="prod-titulo">Operação <span class="prod-rota-tag">/prod</span></h1>
+          </div>
+        </div>
+
+        <div class="prod-status-grupo" aria-live="polite">
+          <span id="status-observador" class="status-pill status-neutro">
+            <span class="status-ponto" aria-hidden="true"></span>
+            <span class="status-texto">Conectando observador…</span>
+          </span>
+          <span id="status-modelos" class="status-pill status-neutro">
+            <span class="status-ponto" aria-hidden="true"></span>
+            <span class="status-texto">Modelos carregando…</span>
+          </span>
+        </div>
+      </div>
+
+      <div class="prod-acoes">
+        <button id="btn-exemplos" type="button" class="btn btn-primario">
+          Enviar exemplos
+        </button>
+        <button id="btn-limpar" type="button" class="btn btn-perigo" disabled title="Aguardando processamento terminar">
+          Limpar
+        </button>
+        <a href="/press" class="btn prod-link-press">
+          Modo apresentação (/press) →
+        </a>
+      </div>
+    </header>
+
+    <div id="aviso-modelos" class="aviso-modelos" hidden role="alert">
+      <strong>Modelo de folhas ausente:</strong> as notas fiscais continuam funcionando normalmente, mas fotos de folhas serão rejeitadas até treinar o classificador com
+      <code>python scripts/train_leaf_classifier.py</code>.
+    </div>
+
+    <section class="prod-entrada-barra" aria-label="Envio de arquivos">
+      <div id="zona-soltar" class="zona-soltar" tabindex="0" role="button" aria-label="Soltar ou selecionar arquivos PDF, JPG ou PNG">
+        <input id="input-arquivos" type="file" multiple accept=".pdf,.jpg,.jpeg,.png" hidden>
+        <div class="zona-soltar-conteudo">
+          <div class="zona-soltar-icone" aria-hidden="true">↑</div>
+          <div class="zona-soltar-textos">
+            <strong>Solte notas fiscais (PDF) ou fotos de folhas (JPG, PNG) aqui</strong>
+            <span>Toda entrada passa por <code>bucket/entrada/</code> e entra na fila única de processamento.</span>
+          </div>
+        </div>
+        <button id="btn-selecionar" type="button" class="btn">
+          Selecionar arquivos
+        </button>
+      </div>
+      <div id="feedback-acao" class="feedback-acao" hidden aria-live="polite"></div>
+    </section>
+
+    <main class="prod-workspace">
+      <section class="prod-coluna-lista" aria-label="Caixa de entrada de arquivos">
+        <div class="filtros-barra" role="tablist" aria-label="Filtrar por situação">
+          <button type="button" class="filtro-btn ativo" data-filtro="todos" role="tab" aria-selected="true">
+            <span>Todos</span>
+            <span class="filtro-contagem" id="cont-todos">0</span>
+          </button>
+          <button type="button" class="filtro-btn" data-filtro="aceito" role="tab" aria-selected="false">
+            <span>Aceitos</span>
+            <span class="filtro-contagem" id="cont-aceito">0</span>
+          </button>
+          <button type="button" class="filtro-btn" data-filtro="conferir" role="tab" aria-selected="false">
+            <span>Conferir</span>
+            <span class="filtro-contagem" id="cont-conferir">0</span>
+          </button>
+          <button type="button" class="filtro-btn" data-filtro="rejeitado" role="tab" aria-selected="false">
+            <span>Rejeitados</span>
+            <span class="filtro-contagem" id="cont-rejeitado">0</span>
+          </button>
+          <button type="button" class="filtro-btn" data-filtro="andamento" role="tab" aria-selected="false">
+            <span>Em andamento</span>
+            <span class="filtro-contagem" id="cont-andamento">0</span>
+          </button>
+        </div>
+
+        <div class="lista-cabecalho-info">
+          <span>Mais recentes no topo</span>
+          <span class="dica-teclado">Use ↑ e ↓ para navegar</span>
+        </div>
+
+        <div id="lista-itens" class="lista-itens" role="listbox" aria-label="Itens processados" tabindex="0"></div>
+      </section>
+
+      <aside class="prod-coluna-detalhe" aria-label="Detalhe do item selecionado">
+        <div id="painel-detalhe" class="painel-detalhe"></div>
+      </aside>
+    </main>
+  </div>
+
+  <script src="/static/api.js"></script>
+  <script src="/static/detalhe.js"></script>
+  <script src="/static/prod.js"></script>
+</body>
+</html>
