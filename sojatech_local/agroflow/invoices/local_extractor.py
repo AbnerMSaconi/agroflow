@@ -42,28 +42,35 @@ def _ocr_engine():
     return _ocr
 
 
-def boxes_from_pdf(path) -> tuple[list[Box], str]:
-    page = fitz.open(path)[0]
-    boxes = []
-    for block in page.get_text("dict")["blocks"]:
-        for line in block.get("lines", []):
-            for span in line["spans"]:
-                t = span["text"].strip()
-                if t:
-                    boxes.append(Box(*span["bbox"], t, 1.0))
-    if len(boxes) > 20:
-        return boxes, "texto"
+def _boxes_e_tamanho(path) -> tuple[list[Box], str, tuple[float, float]]:
+    with fitz.open(path) as doc:
+        page = doc[0]
+        tamanho = (float(page.rect.width), float(page.rect.height))
+        boxes = []
+        for block in page.get_text("dict")["blocks"]:
+            for line in block.get("lines", []):
+                for span in line["spans"]:
+                    t = span["text"].strip()
+                    if t:
+                        boxes.append(Box(*span["bbox"], t, 1.0))
+        if len(boxes) > 20:
+            return boxes, "texto", tamanho
 
-    import numpy as np
+        import numpy as np
 
-    pix = page.get_pixmap(dpi=OCR_DPI, colorspace=fitz.csGRAY)
-    img = np.frombuffer(pix.samples, dtype=np.uint8).reshape(pix.height, pix.width)
+        pix = page.get_pixmap(dpi=OCR_DPI, colorspace=fitz.csGRAY)
+        img = np.frombuffer(pix.samples, dtype=np.uint8).reshape(pix.height, pix.width).copy()
     result, _ = _ocr_engine()(img)
     k = 72 / OCR_DPI  # volta para coordenadas em pontos
     for quad, text, score in result or []:
         xs, ys = [p[0] for p in quad], [p[1] for p in quad]
         boxes.append(Box(min(xs) * k, min(ys) * k, max(xs) * k, max(ys) * k, text.strip(), float(score)))
-    return boxes, "ocr"
+    return boxes, "ocr", tamanho
+
+
+def boxes_from_pdf(path) -> tuple[list[Box], str]:
+    boxes, fonte, _ = _boxes_e_tamanho(path)
+    return boxes, fonte
 
 
 # ---------- normalização e validação ----------
@@ -154,9 +161,25 @@ R_TOTAL = re.compile(r"(VALOR\s*TOTAL\s*DA\s*(NOTA|NF-?e?)|V\.?\s*TOTAL\s*(DA\s*
 R_CNPJ_EMIT = re.compile(r"^CNPJ(?!\s*/)(\s*EMITENTE)?\s*:?\s*", re.I)  # não pega "CNPJ / CPF"
 
 
-def extract(path) -> tuple[dict, str]:
-    """Devolve ({campo: (valor, confidence)}, fonte) para um PDF de DANFE."""
-    boxes, fonte = boxes_from_pdf(path)
+def _caixa_pct(b: Box, largura: float, altura: float) -> dict[str, float] | None:
+    if largura <= 0 or altura <= 0:
+        return None
+    x0 = max(0.0, min(b.x0, largura))
+    y0 = max(0.0, min(b.y0, altura))
+    x1 = max(x0, min(b.x1, largura))
+    y1 = max(y0, min(b.y1, altura))
+    return {
+        "x": round(x0 / largura * 100, 2),
+        "y": round(y0 / altura * 100, 2),
+        "w": round((x1 - x0) / largura * 100, 2),
+        "h": round((y1 - y0) / altura * 100, 2),
+    }
+
+
+def extract_detalhado(path) -> tuple[dict, str, tuple[float, float]]:
+    """Devolve ({campo: (valor, confidence, caixa_pct)}, fonte, (largura_pt, altura_pt))."""
+    boxes, fonte, tamanho = _boxes_e_tamanho(path)
+    largura, altura = tamanho
     boxes.sort(key=lambda b: (round(b.y0 / 4), b.x0))
     chave = achar_chave(boxes)
     out = {}
@@ -172,9 +195,9 @@ def extract(path) -> tuple[dict, str]:
         conf = b.score * (1.0 if cnpj_valido(m.group()) else 0.4)
         if chave and chave[6:20] == digits(m.group()):
             conf = min(1.0, conf + 0.15)
-        out["cnpj_emitente"] = (fmt_cnpj(m.group()), round(conf * 0.85, 3))
+        out["cnpj_emitente"] = (fmt_cnpj(m.group()), round(conf * 0.85, 3), _caixa_pct(b, largura, altura))
     elif chave:  # recupera pela chave de acesso
-        out["cnpj_emitente"] = (fmt_cnpj(chave[6:20]), 0.5)
+        out["cnpj_emitente"] = (fmt_cnpj(chave[6:20]), 0.5, None)
 
     # Número da nota: "Nº 000.012.345"
     for x in boxes:
@@ -184,11 +207,11 @@ def extract(path) -> tuple[dict, str]:
             conf = x.score * 0.8
             if chave and int(chave[25:34]) == int(num):
                 conf = min(1.0, conf + 0.15)
-            out["numero"] = (num, round(conf, 3))
+            out["numero"] = (num, round(conf, 3), _caixa_pct(x, largura, altura))
             break
     else:
         if chave:
-            out["numero"] = (str(int(chave[25:34])), 0.5)
+            out["numero"] = (str(int(chave[25:34])), 0.5, None)
 
     # Data de emissão
     m, b = valor_perto(boxes, R_EMISSAO, RE_DATA)
@@ -197,11 +220,17 @@ def extract(path) -> tuple[dict, str]:
         conf = b.score * 0.85
         if chave and chave[2:6] == a[2:] + mo:
             conf = min(1.0, conf + 0.1)
-        out["data_emissao"] = (f"{a}-{mo}-{d}", round(conf, 3))
+        out["data_emissao"] = (f"{a}-{mo}-{d}", round(conf, 3), _caixa_pct(b, largura, altura))
 
     # Valor total
     m, b = valor_perto(boxes, R_TOTAL, RE_VALOR)
     if m:
-        out["valor_total"] = (f"{valor_float(m.group()):.2f}", round(b.score * 0.9, 3))
+        out["valor_total"] = (f"{valor_float(m.group()):.2f}", round(b.score * 0.9, 3), _caixa_pct(b, largura, altura))
 
-    return out, fonte
+    return out, fonte, tamanho
+
+
+def extract(path) -> tuple[dict, str]:
+    """Devolve ({campo: (valor, confidence)}, fonte) para um PDF de DANFE."""
+    campos, fonte, _ = extract_detalhado(path)
+    return {c: (v, conf) for c, (v, conf, _) in campos.items()}, fonte

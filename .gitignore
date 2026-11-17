@@ -3,6 +3,7 @@ __pycache__/
 _downloads/
 sojatech_local/models/**/*.pt
 sojatech_local/results/agroflow.db
+sojatech_local/results/fluxo/
 sojatech_local/bucket/**
 !sojatech_local/bucket/**/
 !sojatech_local/bucket/entrada/notas/.gitkeep
