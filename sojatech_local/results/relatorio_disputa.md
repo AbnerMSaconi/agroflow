@@ -1,3 +1,8 @@
+> **DESATUALIZADO.** Este relatório foi gravado em 16/11/2026 às 17:22, de uma rodada anterior da disputa
+> (vencedora `convnext_small`). A rodada final (18:03) está em `results/disputa_redes.json` e em
+> `models/leaf_classifier.json`: vencedora `vit_b_16`. Os números de teste vêm de `results/metricas.json` e
+> `results/resumo.md`. Para o paper e para o produto, use esses arquivos, não os números abaixo.
+
 # Relatório de entrega — classificador de folhas (rodada final)
 
 Data da rodada: 2026-11-16. Commit de base: `afbfb8e` (branch `modelo-folhas`).
