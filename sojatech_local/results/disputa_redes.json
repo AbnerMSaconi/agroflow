@@ -1,0 +1,45 @@
+{
+  "candidatas": [
+    {
+      "rede": "efficientnet_b0",
+      "f1_val_campo": 0.7216954022988505,
+      "acuracia_val_campo": 0.7818181818181819,
+      "f1_val_lab": 0.9522032981886996,
+      "n_parametros": 5288548,
+      "tempo_treino_s": 189.1,
+      "lote": 32,
+      "melhor_epoca": 9
+    },
+    {
+      "rede": "efficientnet_v2_s",
+      "f1_val_campo": 0.7425669120584374,
+      "acuracia_val_campo": 0.8,
+      "f1_val_lab": 0.9447783011206756,
+      "n_parametros": 21458488,
+      "tempo_treino_s": 273.8,
+      "lote": 16,
+      "melhor_epoca": 13
+    },
+    {
+      "rede": "convnext_small",
+      "f1_val_campo": 0.7502278111900856,
+      "acuracia_val_campo": 0.8,
+      "f1_val_lab": 0.9705882352941176,
+      "n_parametros": 50223688,
+      "tempo_treino_s": 138.5,
+      "lote": 32,
+      "melhor_epoca": 11
+    },
+    {
+      "rede": "vit_b_16",
+      "f1_val_campo": 0.7794942892982109,
+      "acuracia_val_campo": 0.8181818181818182,
+      "f1_val_lab": 0.9594516158804873,
+      "n_parametros": 86859496,
+      "tempo_treino_s": 328.3,
+      "lote": 8,
+      "melhor_epoca": 6
+    }
+  ],
+  "vencedora": "vit_b_16"
+}
