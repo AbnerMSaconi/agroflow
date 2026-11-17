@@ -13,10 +13,13 @@ RAIZ = Path(__file__).resolve().parent.parent.parent  # raiz do repositório
 ITENS = [
     "sojatech_cloud/scripts/vision_minimo.py",
     "sojatech_cloud/scripts/docai_minimo.py",
+    "sojatech_cloud/scripts/lab_a.sh",
+    "sojatech_cloud/scripts/lab_b.sh",
     "sojatech_cloud/agroflow",
     "data/leaves/test",
     "data/leaves/campo/teste",
     "data/invoices/holdout_s9",
+    "data/invoices/validacao_s8",  # teste rápido do lab B, sem gastar o holdout
 ]
 
 
