@@ -1,0 +1,25 @@
+# Ambiente virtual e caches Python
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Controle de versão e ferramentas locais
+.git/
+.gitignore
+.gitattributes
+.claude/
+.superpowers/
+docs/
+
+# Downloads brutos, projeto arquivado e artefatos de runtime (montados via volume)
+_downloads/
+sojatech_cloud/
+data/
+report/
+sojatech_local/bucket/
+sojatech_local/models/
+sojatech_local/results/

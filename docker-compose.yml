@@ -1,0 +1,59 @@
+x-agroflow-common: &agroflow-common
+  build:
+    context: .
+    dockerfile: Dockerfile
+  image: agroflow-local:latest
+  working_dir: /app/sojatech_local
+  environment:
+    PYTHONUNBUFFERED: "1"
+    TORCH_HOME: /root/.cache/torch
+  volumes:
+    - ./data:/app/data
+    - ./report:/app/report
+    - ./sojatech_local/models:/app/sojatech_local/models
+    - ./sojatech_local/results:/app/sojatech_local/results
+    - ./sojatech_local/bucket:/app/sojatech_local/bucket
+    - torch_cache:/root/.cache/torch
+
+services:
+  agroflow:
+    <<: *agroflow-common
+    ports:
+      - "8000:8000"
+    command: ["python", "scripts/app.py", "--host", "0.0.0.0", "--porta", "8000", "--sem-navegador"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/estado', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  agroflow-gpu:
+    <<: *agroflow-common
+    profiles: ["gpu"]
+    ports:
+      - "8000:8000"
+    command: ["python", "scripts/app.py", "--host", "0.0.0.0", "--porta", "8000", "--sem-navegador"]
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/estado', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  test:
+    <<: *agroflow-common
+    profiles: ["test"]
+    command: ["pytest", "tests", "-q"]
+
+volumes:
+  torch_cache:
