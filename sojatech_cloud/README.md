@@ -1,8 +1,12 @@
-# sojatech_cloud (arquivado)
+# sojatech_cloud
 
-> **Arquivado.** A conta GCP não ficou disponível, então o trabalho roda pelo
-> [`sojatech_local`](../sojatech_local/README.md). O código fica pronto para quando
-> houver créditos e nunca foi executado contra o GCP de verdade.
+> **Nesta branch (`gcp-minimo`) o caminho é o mínimo, pelos labs do Skills Boost:**
+> `scripts/vision_minimo.py` e `scripts/docai_minimo.py`, com o roteiro em [`LAB.md`](LAB.md) e os
+> scripts `scripts/lab_a.sh` e `scripts/lab_b.sh`.
+>
+> O pipeline completo descrito abaixo (Cloud Function, BigQuery, Vertex, `infra/`) continua
+> arquivado: a conta GCP de estudante não ficou disponível, e esse código nunca foi executado
+> contra o GCP de verdade. O [`sojatech_local`](../sojatech_local/README.md) é a demonstração.
 
 A mesma pipeline do `sojatech_local`, com os serviços do Google no lugar dos
 substitutos locais:
