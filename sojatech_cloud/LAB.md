@@ -38,16 +38,15 @@ python3 -m zipfile -e agroflow-lab.zip . && cd sojatech_cloud
 
 ## Lab A: Vision API nas folhas (GSP037)
 
-Faça os passos do lab (chave de API, bucket, requisições) e, com a API habilitada:
+Faça os passos do lab (chave de API, bucket, requisições) e rode:
 
 ```
-gcloud services enable vision.googleapis.com
-pip install google-cloud-vision
-python scripts/vision_minimo.py --limite 40                         # laboratório, amostra de 40
-python scripts/vision_minimo.py --pasta ../data/leaves/campo/teste --limite 40
+bash scripts/lab_a.sh        # 40 imagens de laboratório e 40 de campo
+bash scripts/lab_a.sh 0      # todas: 100 de laboratório e 127 de campo
 ```
 
-Sem `--limite` são 100 fotos de laboratório e 127 de campo. Guardar `results/vision_test.csv` e
+O script habilita a API, instala a biblioteca, roda os dois conjuntos, empacota `results/` em
+`resultados_lab_a.zip` e baixa o zip. Guardar `results/vision_test.csv` e
 `results/vision_teste.csv`, o resumo impresso e prints do console.
 
 **O que esperar:** a label detection devolve rótulos genéricos (Leaf, Plant...) com score alto. Na
@@ -64,16 +63,13 @@ se o projeto do lab deixa criar processadores especializados; se não deixar, o 
 pares chave/valor e precisaria de outro extrator.
 
 ```
-gcloud services enable documentai.googleapis.com
-pip install google-cloud-documentai
-export GCP_PROJECT=$(gcloud config get-value project)
-export DOCAI_PROCESSOR_ID=<id do Invoice Parser>
-python scripts/docai_minimo.py --limite 20      # holdout_s9: avaliar uma vez (veja data/invoices/CONJUNTOS.md)
+bash scripts/lab_b.sh <ID_DO_INVOICE_PARSER> [REGIAO]     # REGIAO padrão: us
 ```
 
-Se for rodar as 40 notas, tire o `--limite`. Guardar `results/docai_holdout_s9.csv`, a tabela
-impressa e prints. Amostra e conjunto completo não se misturam: o número do relatório vem de uma
-única execução.
+O script faz um teste rápido em 3 notas da `validacao_s8` (acha erro de ID, região ou permissão
+sem gastar o holdout), pergunta se pode seguir e roda o `holdout_s9` inteiro, **uma vez**
+(veja `data/invoices/CONJUNTOS.md`). Depois empacota `results/` em `resultados_lab_b.zip` e baixa.
+Guardar também a tabela impressa e prints do console.
 
 **O que esperar:** o Invoice Parser é treinado em faturas estrangeiras e pode confundir o CNPJ do
 emitente com o do destinatário e a data de emissão com a de saída. Isso é resultado, não bug.
