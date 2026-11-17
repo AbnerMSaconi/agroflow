@@ -392,6 +392,8 @@ def secao_classificador(titulo, c):
 
 def carregar():
     df = storage.load_dataframe()
+    if "origem" in df.columns:
+        df = df[df.origem == "lote"]
     df["processado_em"] = pd.to_datetime(df.processado_em, utc=True, format="ISO8601")
     df = df[df.backend == "local"].sort_values("processado_em")
     return df.drop_duplicates(["arquivo", "tipo", "campo"], keep="last")
