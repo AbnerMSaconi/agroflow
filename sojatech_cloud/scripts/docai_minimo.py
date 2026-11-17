@@ -20,11 +20,14 @@ from agroflow import config  # noqa: E402
 CAMPOS = ["cnpj_emitente", "numero", "data_emissao", "valor_total"]
 
 
-def avalia(pasta: Path, extrair) -> list[dict]:
+def avalia(pasta: Path, extrair, limite: int | None = None) -> list[dict]:
     """Uma linha por nota e campo: esperado, extraído, confidence e acerto."""
     linhas = []
     with open(pasta / "gabarito.csv", encoding="utf-8", newline="") as f:
         gabarito = list(csv.DictReader(f))
+    if limite and limite < len(gabarito):  # N notas espaçadas (mistura os layouts)
+        passo = len(gabarito) / limite
+        gabarito = [gabarito[int(i * passo)] for i in range(limite)]
     for i, g in enumerate(gabarito, 1):
         try:
             campos, _ = extrair(pasta / "pdf" / g["arquivo"])
@@ -61,6 +64,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--pasta", type=Path, default=config.INVOICES_DIR / "holdout_s9",
                     help="pasta com pdf/ e gabarito.csv (padrão: holdout_s9)")
+    ap.add_argument("--limite", type=int, help="usa só N notas espaçadas (para lab com pouco tempo)")
     ap.add_argument("--saida", type=Path, help="CSV de saída (padrão: results/docai_<pasta>.csv)")
     args = ap.parse_args()
 
@@ -68,7 +72,7 @@ def main():
         sys.exit("defina GCP_PROJECT e DOCAI_PROCESSOR_ID (veja o topo deste arquivo)")
     from agroflow.invoices.docai_extractor import extract
 
-    linhas = avalia(args.pasta, extract)
+    linhas = avalia(args.pasta, extract, args.limite)
     saida = args.saida or config.RESULTS / f"docai_{args.pasta.name}.csv"
     saida.parent.mkdir(parents=True, exist_ok=True)
     with open(saida, "w", newline="", encoding="utf-8") as f:

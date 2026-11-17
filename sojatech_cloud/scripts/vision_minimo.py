@@ -21,6 +21,14 @@ TERMOS_PRAGA = ["rust", "blight", "spot", "fung", "disease", "mildew", "mold", "
 TERMOS_PLANTA = ["leaf", "plant", "corn", "maize", "ear", "vegetation", "grass", "flora", "botany"]
 
 
+def amostra(itens: list, limite: int | None) -> list:
+    """`limite` itens espaçados pela lista inteira (que vem ordenada por classe)."""
+    if not limite or limite >= len(itens):
+        return itens
+    passo = len(itens) / limite
+    return [itens[int(i * passo)] for i in range(limite)]
+
+
 def tem(rotulo: str, termos: list[str]) -> int:
     return int(any(t in rotulo.lower() for t in termos))
 
@@ -72,10 +80,12 @@ def main():
     ap.add_argument("--pasta", type=Path, default=config.LEAVES_DIR / "test",
                     help="pasta com <classe>/<imagem> (padrão: data/leaves/test)")
     ap.add_argument("--k", type=int, default=10, help="rótulos por imagem")
+    ap.add_argument("--limite", type=int, help="usa só N imagens espaçadas (para lab com pouco tempo)")
     ap.add_argument("--saida", type=Path, help="CSV de saída (padrão: results/vision_<pasta>.csv)")
     args = ap.parse_args()
 
-    imagens = sorted(p for p in args.pasta.glob("*/*") if p.suffix.lower() in config.IMAGE_EXT)
+    imagens = amostra(sorted(p for p in args.pasta.glob("*/*") if p.suffix.lower() in config.IMAGE_EXT),
+                      args.limite)
     if not imagens:
         sys.exit(f"nenhuma imagem em {args.pasta}/<classe>/")
     from agroflow.leaves.gcp_models import baseline
