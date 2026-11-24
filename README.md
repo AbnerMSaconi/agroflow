@@ -74,7 +74,7 @@ custo), veja a seção 7 do mesmo guia.
 ```
 data/                compartilhado: notas fictícias + gabaritos, folhas treino/teste
 report/              (fora do git) destino das tabelas e figuras geradas pelo evaluate; o paper fica no Overleaf
-docs/                STATUS.md (andamento do plano)
+docs/                guias de execução (GUIA_LOCAL.md e GUIA_CLOUD.md)
 sojatech_local/      pacote agroflow local, scripts, modelo, resultados, notebook do Colab
 sojatech_cloud/      pacote agroflow com Document AI/Vision/Vertex/BigQuery, Cloud Function,
                      infra gcloud, notebook do Colab para o GCP
