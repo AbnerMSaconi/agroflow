@@ -73,7 +73,7 @@ custo), veja a seção 7 do mesmo guia.
 
 ```
 data/                compartilhado: notas fictícias + gabaritos, folhas treino/teste
-report/              relatório LaTeX (secoes/, tabelas/ e figuras/ geradas pelo evaluate)
+report/              (fora do git) destino das tabelas e figuras geradas pelo evaluate; o paper fica no Overleaf
 docs/                STATUS.md (andamento do plano)
 sojatech_local/      pacote agroflow local, scripts, modelo, resultados, notebook do Colab
 sojatech_cloud/      pacote agroflow com Document AI/Vision/Vertex/BigQuery, Cloud Function,
