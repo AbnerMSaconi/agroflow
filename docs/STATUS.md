@@ -1,73 +1,66 @@
-# Andamento do plano — atualizado em 13/11/2026
+# Andamento do plano — atualizado em 23/11/2026
 
-Legenda: ✅ feito · 🟡 pronto no `sojatech_cloud`, mas não executado (sem GCP) · ⬜ depende de você
+Legenda: ✅ feito · 🟡 escrito mas não executado · ⬜ pendente
 
-**13/11/2026: o GCP saiu do plano.** A conta de estudante não ficou disponível. O
-repositório foi dividido em dois projetos:
-
-- `sojatech_local/`: o que roda o trabalho, na máquina ou no Colab
-  (`sojatech_local/notebooks/agroflow_colab.ipynb`).
-- `sojatech_cloud/`: o código do GCP (Document AI, Vision, Vertex, BigQuery,
-  Cloud Function), arquivado e nunca executado.
-
-O enunciado pedia Vision API, Vertex AI ou Document AI de verdade: isso agora é uma
-limitação a tratar no relatório. Os itens 🟡 abaixo continuam prontos no
-`sojatech_cloud`, mas ficam parados.
+**Situação:** o pipeline roda de ponta a ponta no `sojatech_local` (tela web, local e Docker com
+GPU) e os dois serviços do Google foram executados de verdade pelos labs do Skills Boost
+(Document AI no GSP1139, Vision API no GSP037). O pipeline completo no GCP (Cloud Storage, Cloud
+Function, BigQuery, Vertex AI) continua escrito e **não executado**. Como rodar tudo:
+[GUIA_LOCAL.md](GUIA_LOCAL.md) e [GUIA_CLOUD.md](GUIA_CLOUD.md).
 
 ## Fase 0 — Setup e dados
-- 🟡 Projeto GCP, créditos, orçamento com alerta, APIs, service account → `sojatech_cloud/infra/setup_gcp.sh`
-- ✅ Repositório Git: github.com/AbnerMSaconi/agroflow (privado)
-- ❌ Conta GCP de estudante: não saiu (13/11)
-- ✅ 40 DANFEs (`data/invoices/pdf`), 26 digitais + 14 "escaneadas", 2 layouts
-- ✅ Gabarito `data/invoices/gabarito.csv` (CNPJ emitente, número, data de emissão, valor total)
-- ✅ Dados pessoais: notas 100% fictícias, nada a anonimizar
-- ✅ 4 classes de milho do PlantVillage (3 doenças + saudável)
-- ✅ 100 treino / 25 teste por classe, teste fixo em `data/leaves/test`
+- ✅ Repositório: github.com/AbnerMSaconi/agroflow (branch única: `main`)
+- ✅ 40 DANFEs fictícias com gabarito, conjuntos separados (desenvolvimento, validação, teste e
+  `holdout_s9` lacrado; ver `data/invoices/CONJUNTOS.md`)
+- ✅ Folhas de milho (4 classes): fotos de laboratório (PlantVillage) e de campo
+- ❌ Conta GCP de estudante: não saiu; usamos labs do Skills Boost
+- 🟡 Projeto GCP próprio com orçamento: `sojatech_cloud/infra/setup_gcp.sh`
 
 ## Fase 1 — Notas fiscais
-- 🟡 Processador Invoice Parser → criar no console; extrator pronto em `sojatech_cloud/agroflow/invoices/docai_extractor.py`
-- ✅ Script de extração (campo, valor, confidence) — local: `local_extractor.py`
-- ✅ Rodado nas 40 notas e comparado campo a campo (`sojatech_local/results/notas_comparacao.csv`)
-- ✅ Conjunto de teste separado (`data/invoices/teste`, seed 7 + layout "variante" nunca visto):
-  91,9% por campo, 67,5% nota inteira; os 13 erros são o valor total do layout novo, todos
-  devolvidos vazios (confidence 0), nenhum valor errado com confidence alto
-- ⬜ Prints de onde o parser genérico erra na DANFE (precisa do Document AI)
-- ⬜ Custom Extractor, se o Invoice Parser for mal
+- ✅ Extrator local (PyMuPDF + RapidOCR + regras por rótulo), congelado antes do holdout
+- ✅ Layout novo, antes de corrigir as regras: 91,9% por campo e 67,5% por nota (13 erros, todos
+  campo vazio com confidence 0)
+- ✅ Holdout `holdout_s9` (40 notas): extrator local 40/40
+- ✅ Document AI Invoice Parser (lab GSP1139): 40/40 no holdout, uma única rodada
+- ✅ Document AI mais conservador no confidence (0,623 a 0,844) que o local (0,850 a 0,945)
 
 ## Fase 2 — Folhas
-- ✅ Linha de base (local: ResNet-50 ImageNet) — 0% das imagens com rótulo de doença; 🟡 Vision API
-- ✅ Classificador treinado (local: EfficientNet-B0, 13 s na GPU) — 95% de acurácia no teste
-- 🟡 Vertex AutoML: upload/dataset/treino e avaliação no teste por batch prediction (sem endpoint)
-  — notebook B5–B7 ou `sojatech_cloud/infra/vertex_train.sh`
-- ✅ Plano B (modelo local) já é o padrão
+- ✅ Disputa de quatro arquiteturas na validação; escolhido o ViT-B/16
+- ✅ ViT-B/16: 99,0% no laboratório e 87,4% no campo
+- ✅ Linha de base ResNet-50 e Vision API (lab GSP037, 227 imagens): rótulos genéricos com score
+  alto, não é diagnóstico
+- 🟡 Vertex AI AutoML (`sojatech_cloud/infra/vertex_train.sh`): não executado, treino mínimo de 8
+  horas de nó
 
-## Fase 3 — Pipeline
-- ✅ Bucket de entrada com `notas/` e `imagens/` (local) · 🟡 GCS
-- ✅ Função com trigger de arquivo novo (watchdog) · 🟡 Cloud Function `sojatech_cloud/cloud_function/main.py`
-- ✅ Scripts das fases 1 e 2 reaproveitados como módulos (`sojatech_local/agroflow/`)
-- ✅ Tabela de resultados (SQLite, mesmo esquema do BigQuery)
-- ✅ Rejeitados + log testados (extensão inválida, imagem corrompida)
-- ✅ Ponta a ponta com 5 notas + 5 imagens
-- ⬜ (Opcional) Natural Language
+## Fase 3 — Pipeline e aplicação
+- ✅ Pipeline local com pasta monitorada (watchdog), tabela SQLite e rejeitados com log
+- ✅ Tela web (`/prod` e `/press`) com fila única: aceito, conferir, rejeitado
+- ✅ Docker (CPU e GPU) com NVIDIA Container Toolkit; 86 de 88 testes passam no container (os 2
+  restantes precisam de `git`, ausente na imagem)
+- ✅ Correção do aquecimento do OCR em `fluxo.py`
+- 🟡 Cloud Storage + Cloud Function + BigQuery: `sojatech_cloud/cloud_function/` e `infra/`
+- ⬜ (Opcional) Natural Language API e painel no Looker Studio
 
 ## Fase 4 — Avaliação
-- ✅ `sojatech_local/scripts/evaluate.py`: tabelas, gráficos, LaTeX
-- 🟡 Comparação Google vs. local nos mesmos testes (`report/tabelas/comparacao_backends.tex`,
-  testada com dados simulados; falta rodar com os resultados reais do GCP)
-- ✅ Limiar de confidence e erros barrados (`sojatech_local/results/metricas.json`, gráficos `*_limiar.png`)
-- ✅ Tempo por item · 🟡 custo GCP estimado: agora só no `sojatech_cloud/scripts/evaluate.py`
-  (a `report/tabelas/custos.tex` atual é da versão anterior)
+- ✅ `sojatech_local/scripts/evaluate.py`: métricas, gráficos e tabelas
+- ✅ Limiar de confidence 0,95: laboratório 65,0% automático e zero erros passando; campo 40,9%
+  automático, barra 15 de 16 erros, 59,1% vão para revisão
+- ✅ Comparação Google vs. local no holdout (`sojatech_cloud/scripts/gera_tabelas_cloud.py`)
+- ✅ Tempos locais (RTX 3090): 530 ms por nota, 10,8 ms (ResNet-50), 15,0 ms (ViT-B/16)
+- ✅ Consumo nos labs: 6 créditos (1 no GSP1139, 5 no GSP037)
+- ⬜ Fotos de milho saudável em campo, para medir falsos positivos
 
 ## Fase 5 — Relatório
-- ✅ Esqueleto + texto-base das 8 seções em `report/secoes/`, tabelas e figuras já ligadas
-- ⬜ Colar no template do professor; compilar (não há LaTeX instalado aqui — use Overleaf ou MiKTeX)
-- ⬜ Prints do console, link do repositório, fundamentação com referências
+- ✅ Paper no template elsarticle, mantido no **Overleaf** (`report/` saiu do git em 23/11)
+- ⬜ Conferir prints, referências e a correção feita no Overleaf antes de entregar
 
 ## Fase 6 — Apresentação
-- ⬜ Slides, vídeo de reserva, ensaios
+- ✅ Roteiro de fala e slides de 14 páginas (locais, fora do git)
+- ⬜ Ensaios e vídeo de reserva
 
 ## Pontos de atenção
-- O extrator local acerta 100% das notas de desenvolvimento, mas as regras foram ajustadas vendo
-  esses layouts. Cite o número do conjunto de teste (91,9% por campo) e não ajuste o extrator
-  olhando o teste.
-- O confidence do CNPJ é quase constante (0,85): informativo só quando o dígito verificador falha.
+- Só o `holdout_s9` mede generalização: os conjuntos de desenvolvimento, validação e teste inicial
+  deixaram de ser independentes depois que as regras foram ajustadas olhando seus erros.
+- O gabarito das DANFEs é sintético, o que explica parte do 100% no holdout.
+- O conjunto de campo não tem milho saudável.
+- Os guias de execução do GCP próprio (seção 7 do `GUIA_CLOUD.md`) não foram testados.
