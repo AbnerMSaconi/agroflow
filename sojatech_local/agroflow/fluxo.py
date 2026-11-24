@@ -24,6 +24,7 @@ from watchdog.events import FileSystemEventHandler
 from watchdog.observers import Observer
 
 from . import config, invoices, leaves, pipeline, storage
+from .invoices import local_extractor
 from .pipeline import ArquivoInvalido, CAMPOS_NOTA
 
 log = logging.getLogger("agroflow.fluxo")
@@ -498,7 +499,7 @@ class Fluxo:
 
     def _aquecer_modelos(self) -> None:
         try:
-            invoices.local_extractor._ocr_engine()
+            local_extractor._ocr_engine()
         except Exception as e:
             log.warning("falha no aquecimento do OCR: %s", e)
 

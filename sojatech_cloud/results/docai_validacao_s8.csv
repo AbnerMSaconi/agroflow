@@ -1,0 +1,13 @@
+arquivo,layout,escaneada,campo,esperado,extraido,confidence,acertou,erro
+nota_001.pdf,compacto,1,cnpj_emitente,62.301.238/0001-04,62.301.238/0001-04,0.784,1,
+nota_001.pdf,compacto,1,numero,55892,55892,0.812,1,
+nota_001.pdf,compacto,1,data_emissao,2026-04-27,2026-04-27,0.745,1,
+nota_001.pdf,compacto,1,valor_total,854.46,854.46,0.647,1,
+nota_014.pdf,padrao,0,cnpj_emitente,58.140.097/0001-18,58.140.097/0001-18,0.756,1,
+nota_014.pdf,padrao,0,numero,182870,182870,0.852,1,
+nota_014.pdf,padrao,0,data_emissao,2026-01-01,2026-01-01,0.651,1,
+nota_014.pdf,padrao,0,valor_total,119560.17,119560.17,0.855,1,
+nota_027.pdf,padrao,0,cnpj_emitente,79.775.115/0001-08,79.775.115/0001-08,0.804,1,
+nota_027.pdf,padrao,0,numero,189047,189047,0.816,1,
+nota_027.pdf,padrao,0,data_emissao,2026-02-13,2026-02-13,0.861,1,
+nota_027.pdf,padrao,0,valor_total,8455.43,8455.43,0.723,1,
